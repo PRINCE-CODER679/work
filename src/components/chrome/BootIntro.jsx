@@ -5,10 +5,9 @@ import { ScrambleText } from '../ui/ScrambleText';
 import './chrome.css';
 
 /**
- * SCENE 00 — OPENING / BOOT SEQUENCE
- * Fast, real initialization choreography (~1.3s max), skippable anytime via click or Esc.
- * Synchronizes `scenes.hero.intro` (0 -> 1) so the WebGL camera smoothly pulls back
- * from macro detail inside the computational core into the full Hero composition.
+ * SCENE 00 — OPENING OPTICAL FILM SEQUENCE (0–4s CHOREOGRAPHY)
+ * Optical aperture lock inspired by cinema title cards (~1.05s boot progress, skippable anytime),
+ * seamlessly triggering the continuous WebGL `scenes.hero.intro` camera pullback across 0..4s.
  */
 export function BootIntro({ onReady }) {
   const [done, setDone] = useState(false);
@@ -19,12 +18,20 @@ export function BootIntro({ onReady }) {
   const finish = () => {
     if (skippedRef.current) return;
     skippedRef.current = true;
-    scenes.hero.intro = 1;
     app.loaded = true;
     app.introDone = true;
     document.body.classList.remove('is-loading');
     setPct(100);
     setDone(true);
+    if (prefersReducedMotion()) {
+      scenes.hero.intro = 1;
+    } else {
+      gsap.to(scenes.hero, {
+        intro: 1,
+        duration: 2.35,
+        ease: EASE.camera,
+      });
+    }
     if (onReady) onReady();
   };
 
@@ -37,8 +44,6 @@ export function BootIntro({ onReady }) {
 
     document.body.classList.add('is-loading');
     const state = { p: 0 };
-
-    // Wait briefly for fonts so first painted frame typography is sharp, capped tightly at 1.25s
     const fontsPromise = document.fonts ? document.fonts.ready : Promise.resolve();
     let fontsResolved = false;
     fontsPromise.then(() => {
@@ -52,26 +57,15 @@ export function BootIntro({ onReady }) {
         if (barRef.current) {
           barRef.current.style.transform = `scaleX(${state.p})`;
         }
-        // Start easing the 3D camera pullback during the tail end of boot
-        scenes.hero.intro = Math.max(0, (state.p - 0.55) / 0.45) * 0.45;
+        // Begin unfolding the WebGL portrait & camera dolly near tail of boot
+        scenes.hero.intro = Math.max(0, (state.p - 0.5) / 0.5) * 0.28;
       },
-      onComplete: () => {
-        gsap.to(scenes.hero, {
-          intro: 1,
-          duration: 1.35,
-          ease: EASE.camera,
-        });
-        finish();
-      },
+      onComplete: finish,
     });
 
-    tl.to(state, {
-      p: 0.72,
-      duration: 0.65,
-      ease: 'power2.out',
-    }).to(state, {
+    tl.to(state, { p: 0.72, duration: 0.55, ease: 'power2.out' }).to(state, {
       p: 1,
-      duration: fontsResolved ? 0.45 : 0.6,
+      duration: fontsResolved ? 0.38 : 0.5,
       ease: 'expo.out',
     });
 
@@ -92,42 +86,45 @@ export function BootIntro({ onReady }) {
 
   return (
     <div
-      className={`boot ${done ? 'is-done' : ''}`}
+      className={`boot boot--cinema ${done ? 'is-done' : ''}`}
       role="status"
       aria-live="polite"
       aria-hidden={done}
+      onClick={finish}
     >
       <div className="boot__top">
         <span className="mono">
           <span className="boot__dot" aria-hidden="true" />
-          <ScrambleText text="SYSTEM://ASRAR" duration={600} />
+          <ScrambleText text="ASRAR://DIGITAL_FILM_v2" duration={540} />
         </span>
         <button
           type="button"
           className="boot__skip"
-          onClick={finish}
-          aria-label="Skip introduction"
+          onClick={(e) => {
+            e.stopPropagation();
+            finish();
+          }}
+          aria-label="Enter experience"
         >
-          SKIP [ESC]
+          ENTER [ESC]
         </button>
       </div>
 
-      <div className="boot__center">
-        <p className="mono muted">
-          <ScrambleText text="INITIALIZING DIGITAL ENVIRONMENT · 18.62°N 73.79°E" duration={720} />
-        </p>
+      <div className="boot__center boot__center--cinema">
         <div className="boot__title display">
-          <ScrambleText text="ASRAR MULLA" duration={780} delay={120} />
+          <ScrambleText text="ASRAR MULLA" duration={680} delay={60} />
         </div>
-        <div className="boot__sub mono">
-          <span>AI &amp; DATA SCIENCE</span>
-          <span>SOFTWARE ENGINEERING</span>
-          <span>CREATIVE WEBGL</span>
+        <div className="boot__capsule">
+          Asrar Mulla is an AI &amp; Data Science engineer building full-stack intelligent systems,
+          real-time computer vision pipelines, and interactive 3D web experiences.
+        </div>
+        <div className="boot__enter-cue mono">
+          <span style={{ color: 'var(--signal)' }}>●</span> CLICK OR SCROLL TO ENTER DIGITAL FILM
         </div>
       </div>
 
       <div className="boot__bar-wrap">
-        <span className="mono">STAGE // BOOT</span>
+        <span className="mono">OPTICAL // LOCK</span>
         <div className="boot__bar">
           <div ref={barRef} className="boot__bar-fill" />
         </div>
@@ -136,4 +133,3 @@ export function BootIntro({ onReady }) {
     </div>
   );
 }
-

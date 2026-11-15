@@ -208,7 +208,7 @@ export function SignSenseScene({ onOpenCase }) {
       <div className="proj-scene__head">
         <div className="proj-scene__title-col">
           <div className="mono section-index" style={{ color: 'var(--signal)' }}>
-            <span>05 / PROJECT 02 — {project.category}</span>
+            <span>{project.category}</span>
           </div>
           <h3 className="display proj-scene__title">
             <SplitHeadline lines={['SIGN', 'SENSE AI.']} as="span" />

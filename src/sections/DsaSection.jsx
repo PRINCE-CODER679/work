@@ -192,7 +192,7 @@ export function DsaSection() {
       aria-label="Scene 09: Algorithms & Problem Solving"
     >
       <div className="mono section-index" style={{ marginBottom: '0.8rem' }}>
-        <span>09 / ALGORITHMS &amp; DATA STRUCTURES</span>
+        <span>ALGORITHMS &amp; DATA STRUCTURES</span>
       </div>
 
       <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-end', gap: '1.5rem' }}>

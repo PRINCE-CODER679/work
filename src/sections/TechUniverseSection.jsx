@@ -40,7 +40,7 @@ export function TechUniverseSection({ onOpenCase }) {
       <div className="toolbox__head">
         <div>
           <div className="mono section-index" style={{ marginBottom: '0.8rem' }}>
-            <span>08 / VERIFIED SYSTEMS GRAPH</span>
+            <span>VERIFIED SYSTEMS GRAPH</span>
           </div>
           <h2 className="display" style={{ fontSize: 'clamp(2.8rem, 7.6vw, 7.4rem)' }}>
             <SplitHeadline lines={['THE', 'TOOLBOX.']} as="span" />

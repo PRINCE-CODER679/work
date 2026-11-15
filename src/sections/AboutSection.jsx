@@ -82,7 +82,7 @@ export function AboutSection() {
       <div className="about__grid">
         <div className="about__head">
           <div className="mono section-index" style={{ marginBottom: '1.2rem' }}>
-            <span>02 / IDENTITY</span>
+            <span>IDENTITY</span>
           </div>
           <h2 className="display about__display">
             <SplitHeadline lines={['CURIOUS', 'BY NATURE.']} as="span" />

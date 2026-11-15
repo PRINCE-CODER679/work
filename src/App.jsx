@@ -2,11 +2,12 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { gsap, ScrollTrigger, prefersReducedMotion } from './animations/motion';
 import { useSmoothScroll, scrollToTarget } from './hooks/useSmoothScroll';
-import { app, scenes } from './utils/store';
+import { app, pointer, scenes } from './utils/store';
 import { Stage3D } from './scenes/Stage3D';
 import { BootIntro } from './components/chrome/BootIntro';
 import { CustomCursor } from './components/chrome/CustomCursor';
 import { Navbar } from './components/chrome/Navbar';
+import { ChapterRail } from './components/chrome/ChapterRail';
 import { FullscreenMenu } from './components/chrome/FullscreenMenu';
 import { CommandPalette } from './components/chrome/CommandPalette';
 import { BlueprintGrid } from './components/chrome/BlueprintGrid';
@@ -14,18 +15,14 @@ import { Home } from './pages/Home';
 import { CaseStudy } from './pages/CaseStudy';
 
 const SCENE_READOUTS = [
-  { id: 'scene-hero', label: '01 / HERO' },
-  { id: 'scene-about', label: '02 / ABOUT' },
-  { id: 'scene-work-intro', label: '03 / WORK' },
-  { id: 'scene-spendsense', label: '04 / SPENDSENSE' },
-  { id: 'scene-signsense', label: '05 / SIGNSENSE' },
-  { id: 'scene-medikiosk', label: '06 / MEDIKIOSK' },
-  { id: 'scene-devtalks', label: '07 / DEVTALKS' },
-  { id: 'scene-toolbox', label: '08 / TOOLBOX' },
-  { id: 'scene-dsa', label: '09 / DSA' },
-  { id: 'scene-lab', label: '10 / LAB' },
-  { id: 'scene-direction', label: '11 / NEXT' },
-  { id: 'scene-contact', label: '12 / CONTACT' },
+  { id: 'scene-hero', label: 'hero' },
+  { id: 'scene-about', label: 'about' },
+  { id: 'scene-work-intro', label: 'work' },
+  { id: 'scene-toolbox', label: 'toolbox' },
+  { id: 'scene-dsa', label: 'dsa' },
+  { id: 'scene-lab', label: 'lab' },
+  { id: 'scene-direction', label: 'direction' },
+  { id: 'scene-contact', label: 'contact' },
 ];
 
 export default function App() {
@@ -34,7 +31,7 @@ export default function App() {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [blueprint, setBlueprint] = useState(false);
   const [wireframe, setWireframe] = useState(false);
-  const [activeScene, setActiveScene] = useState('01 / HERO');
+  const [activeScene, setActiveScene] = useState('hero');
 
   const curtainRef = useRef(null);
   const transitioningRef = useRef(false);
@@ -43,6 +40,25 @@ export default function App() {
 
   // Mount Lenis smooth scroll synced cleanly with GSAP ScrollTrigger
   useSmoothScroll(true);
+
+  // Global pointer tracking for WebGL parallax, rim relighting, custom cursor, and HUD coordinates
+  useEffect(() => {
+    const updatePointer = (e) => {
+      const w = window.innerWidth || 1440;
+      const h = window.innerHeight || 900;
+      pointer.px = e.clientX;
+      pointer.py = e.clientY;
+      pointer.x = (e.clientX / w) * 2 - 1;
+      pointer.y = -(e.clientY / h) * 2 + 1;
+      pointer.active = true;
+    };
+    window.addEventListener('pointermove', updatePointer, { passive: true });
+    window.addEventListener('mousemove', updatePointer, { passive: true });
+    return () => {
+      window.removeEventListener('pointermove', updatePointer);
+      window.removeEventListener('mousemove', updatePointer);
+    };
+  }, []);
 
   // Pause underlying smooth scroll while fullscreen modals are open
   useEffect(() => {
@@ -182,6 +198,12 @@ export default function App() {
     [transitionTo]
   );
 
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.__asrar) {
+      window.__asrar.openCase = handleOpenCase;
+    }
+  }, [handleOpenCase]);
+
   const handleBackHome = useCallback(
     (scrollToSelector = null) => {
       if (location.pathname === '/' && scrollToSelector) {
@@ -210,6 +232,8 @@ export default function App() {
         onOpenMenu={() => setMenuOpen(true)}
         onOpenPalette={() => setPaletteOpen(true)}
       />
+
+      {location.pathname === '/' ? <ChapterRail activeScene={activeScene} /> : null}
 
       <FullscreenMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
 

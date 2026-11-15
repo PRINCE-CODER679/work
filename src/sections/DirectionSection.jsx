@@ -13,7 +13,7 @@ export function DirectionSection() {
       aria-label="Scene 11: Current Direction"
     >
       <div className="mono section-index" style={{ marginBottom: '1rem' }}>
-        <span>11 / CURRENT VECTOR</span>
+        <span>CURRENT VECTOR</span>
       </div>
 
       <h2 className="display" style={{ fontSize: 'clamp(2.8rem, 8vw, 8.2rem)', lineHeight: 0.85 }}>

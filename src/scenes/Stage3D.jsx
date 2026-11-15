@@ -1,65 +1,63 @@
-import { Suspense, useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { HeroSculpture } from './HeroSculpture';
-import { ErrorBoundary } from '../components/ui/ErrorBoundary';
-import { detectTier, detectWebGL } from '../utils/device';
+import { AsrarWorld } from './AsrarWorld';
 import { app } from '../utils/store';
+import { detectTier, detectWebGL } from '../utils/device';
 
 /**
- * Persistent fullscreen WebGL architectural stage.
- * Automatically degrades cleanly if WebGL is unavailable or context is lost.
+ * Persistent full-viewport R3F Three.js digital-film canvas (z-index: 0).
+ * Falls back gracefully to architectural CSS gradient + fallback portrait when WebGL is disabled.
  */
 export function Stage3D({ wireframe = false }) {
-  const [supported, setSupported] = useState(() => detectWebGL());
-  const [tier] = useState(() => detectTier());
+  const initialWebgl = useMemo(() => {
+    const ok = detectWebGL();
+    app.webgl = ok;
+    app.tier = detectTier();
+    return ok;
+  }, []);
+
+  const [webglReady, setWebglReady] = useState(initialWebgl);
 
   useEffect(() => {
-    app.webgl = supported;
-    app.tier = tier;
-  }, [supported, tier]);
+    document.body.classList.toggle('no-webgl', !webglReady);
+    return () => document.body.classList.remove('no-webgl');
+  }, [webglReady]);
 
-  if (!supported) {
+  if (!webglReady) {
     return <div className="webgl-fallback" aria-hidden="true" />;
   }
 
-  const maxDpr = tier === 'low' ? 1.15 : tier === 'mid' ? 1.4 : 1.75;
+  const maxDpr = app.tier === 'low' ? 1 : app.tier === 'mid' ? 1.45 : 1.75;
 
   return (
-    <ErrorBoundary fallback={<div className="webgl-fallback" aria-hidden="true" />}>
-      <div
-        style={{
-          position: 'fixed',
-          inset: 0,
-          zIndex: 'var(--z-canvas)',
-          pointerEvents: 'none',
+    <div
+      className="stage3d"
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 'var(--z-canvas)',
+        pointerEvents: 'none',
+      }}
+      aria-hidden="true"
+    >
+      <Canvas
+        dpr={[1, maxDpr]}
+        camera={{ fov: 44, position: [0, 0.38, 5.65], near: 0.1, far: 65 }}
+        gl={{
+          antialias: app.tier !== 'low',
+          alpha: false,
+          powerPreference: 'high-performance',
         }}
-        aria-hidden="true"
+        onCreated={({ gl }) => {
+          gl.setClearColor('#080808', 1);
+        }}
+        onError={() => {
+          app.webgl = false;
+          setWebglReady(false);
+        }}
       >
-        <Canvas
-          dpr={[1, maxDpr]}
-          camera={{ fov: 44, near: 0.1, far: 60, position: [0, 0.14, 7.6] }}
-          gl={{
-            antialias: tier !== 'low',
-            powerPreference: 'high-performance',
-            alpha: true,
-          }}
-          onCreated={({ gl }) => {
-            gl.domElement.addEventListener(
-              'webglcontextlost',
-              (e) => {
-                e.preventDefault();
-                setSupported(false);
-              },
-              false
-            );
-          }}
-        >
-          <Suspense fallback={null}>
-            <HeroSculpture wireframe={wireframe} tier={tier} />
-          </Suspense>
-        </Canvas>
-      </div>
-    </ErrorBoundary>
+        <AsrarWorld wireframe={wireframe} tier={app.tier} />
+      </Canvas>
+    </div>
   );
 }
-

@@ -83,9 +83,20 @@ try {
   browser = await puppeteer.launch({
     executablePath: CHROME,
     headless: 'new',
-    args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--no-sandbox', '--disable-dev-shm-usage'],
+    args: [
+      '--use-angle=swiftshader',
+      '--enable-unsafe-swiftshader',
+      '--no-sandbox',
+      '--disable-dev-shm-usage',
+      '--use-fake-ui-for-media-stream',
+      '--use-fake-device-for-media-stream',
+    ],
     defaultViewport: { width: 1440, height: 900, deviceScaleFactor: 1 },
   });
+  try {
+    const context = browser.defaultBrowserContext();
+    await context.overridePermissions(BASE_URL, ['camera']);
+  } catch {}
 
   // 1) Multi-viewport overflow & rendering check across all target widths
   const widths = [
@@ -185,53 +196,46 @@ try {
   const heroAtTop = await page.evaluate(() => {
     const canvas = document.querySelector('canvas');
     const cr = canvas ? canvas.getBoundingClientRect() : null;
-    const footRect = document.querySelector('.hero__foot')?.getBoundingClientRect() || null;
-    const actionsRect = document.querySelector('.hero__actions')?.getBoundingClientRect() || null;
-    const portraitImg = document.querySelector('.hero-portrait__img');
-    const portraitRect = document.querySelector('.hero-portrait')?.getBoundingClientRect() || null;
+    const actionsRect = document.querySelector('.hero-film__actions')?.getBoundingClientRect() || null;
+    const flankRightRect = document.querySelector('.hero-film__flank--right')?.getBoundingClientRect() || null;
+    const tex = window.__asrar?.heroTexture || null;
     return {
       webgl: Boolean(window.__asrar?.app?.webgl),
       intro: window.__asrar?.scenes?.hero?.intro ?? null,
       progress: window.__asrar?.scenes?.hero?.progress ?? null,
-      canvasRect: cr ? { w: cr.width, h: cr.height } : null,
-      footBottom: footRect ? Math.round(footRect.bottom) : null,
+      canvasRect: cr ? { w: Math.round(cr.width), h: Math.round(cr.height) } : null,
+      flankRightBottom: flankRightRect ? Math.round(flankRightRect.bottom) : null,
       actionsBottom: actionsRect ? Math.round(actionsRect.bottom) : null,
-      portraitLoaded: Boolean(portraitImg && portraitImg.complete && portraitImg.naturalWidth > 0),
-      portraitNaturalWidth: portraitImg ? portraitImg.naturalWidth : 0,
-      portraitNaturalHeight: portraitImg ? portraitImg.naturalHeight : 0,
-      portraitRect: portraitRect
-        ? {
-            x: Math.round(portraitRect.left),
-            y: Math.round(portraitRect.top),
-            w: Math.round(portraitRect.width),
-            h: Math.round(portraitRect.height),
-          }
-        : null,
+      portraitLoaded: Boolean(tex?.loaded),
+      portraitNaturalWidth: tex?.width || 0,
+      portraitNaturalHeight: tex?.height || 0,
       activeLabel: document.querySelector('.nav__status span')?.textContent || '',
     };
   });
   await page.screenshot({ path: path.join(OUT_DIR, '01-hero.png') });
   assert(heroAtTop.webgl, 'Expected WebGL to be active on desktop');
   assert(heroAtTop.canvasRect && heroAtTop.canvasRect.w > 1200, 'Expected fullscreen WebGL Stage3D canvas');
-  assert(heroAtTop.portraitLoaded && heroAtTop.portraitNaturalWidth === 576, `Expected hero portrait 576px wide loaded (got ${heroAtTop.portraitNaturalWidth}x${heroAtTop.portraitNaturalHeight})`);
+  assert(heroAtTop.portraitLoaded && heroAtTop.portraitNaturalWidth >= 700, `Expected 3D hero portrait loaded in WebGL (got ${heroAtTop.portraitNaturalWidth}x${heroAtTop.portraitNaturalHeight})`);
   assert(heroAtTop.actionsBottom && heroAtTop.actionsBottom <= 900, `Expected Hero CTA actions above fold (got bottom=${heroAtTop.actionsBottom})`);
-  assert(heroAtTop.footBottom && heroAtTop.footBottom <= 900, `Expected Hero foot above fold (got bottom=${heroAtTop.footBottom})`);
 
-  // Move pointer directly onto the portrait face/shoulder area to trigger spotlight + ASCII hover lens
-  const pr = heroAtTop.portraitRect;
-  const hoverX = pr ? Math.round(pr.x + pr.w * 0.45) : 1040;
-  const hoverY = pr ? Math.round(pr.y + pr.h * 0.44) : 410;
-  await page.mouse.move(hoverX, hoverY, { steps: 10 });
+  // Move pointer across upper-center portrait rig to trigger rim sweep & camera parallax
+  await page.mouse.move(720, 420, { steps: 12 });
   await sleep(380);
   heroAtTop.pointerActiveAfterHover = await page.evaluate(() => Boolean(window.__asrar?.pointer?.active));
+  assert(heroAtTop.pointerActiveAfterHover, 'Expected pointer.active to become true on Hero hover');
   await page.screenshot({ path: path.join(OUT_DIR, '01-hero-hover.png') });
+
+  // Verify keyboard Tab focus lands cleanly on an interactive element
+  await page.keyboard.press('Tab');
+  await page.keyboard.press('Tab');
+  heroAtTop.keyboardFocusTag = await page.evaluate(() => document.activeElement?.tagName || '');
 
   // Scroll into Hero camera dive midpoint (~750px) & check progress advances + reverse scroll returns
   await page.evaluate(() => window.scrollTo({ top: 750, behavior: 'instant' }));
   await sleep(600);
   const heroMidDive = await page.evaluate(() => ({
     progress: window.__asrar?.scenes?.hero?.progress ?? 0,
-    camReadout: document.querySelector('.hero__cad')?.textContent || '',
+    camReadout: document.querySelector('.hero-film__telemetry--right')?.textContent || '',
   }));
   await page.screenshot({ path: path.join(OUT_DIR, '01b-hero-mid-dive.png') });
 
@@ -265,45 +269,59 @@ try {
   };
 
   report.interactions.aboutLabel = await captureScene('#scene-about', '02-about.png', 20);
+
+  // Scene 03 Selected Work: Kai Marlow 3D Project Ring
   report.interactions.workIntroLabel = await captureScene('#scene-work-intro', '03-work-intro.png', 40);
+  report.interactions.ringSlots = await page.$$eval('#scene-work-intro .ring-slot', (els) => els.length);
+  assert(report.interactions.ringSlots === 3, `Expected exactly 3 project cards in 3D ring (got ${report.interactions.ringSlots})`);
 
-  // Scene 04 SpendSense + interactive architecture tab click
-  report.interactions.spendLabel = await captureScene('#scene-spendsense', '04-spendsense.png', 60);
-  const spendTabs = await page.$$('#scene-spendsense .spend-layer');
-  if (spendTabs.length >= 3) {
-    await spendTabs[2].click();
-    await sleep(250);
-    report.interactions.spendActiveLayer = await page.$eval(
-      '#scene-spendsense .spend-console__float',
-      (el) => el.textContent
+  // Verify DEVTALKS is NOT in the 3D ring
+  const ringTitles = await page.$$eval('#scene-work-intro .ring-card__title', (els) => els.map((e) => e.textContent));
+  report.interactions.ringTitles = ringTitles;
+  assert(!ringTitles.some((t) => t.includes('DEVTALKS')), 'DEVTALKS must NOT be present in 3D project ring');
+  assert(ringTitles.some((t) => t.includes('SPENDSENSE')), 'SPENDSENSE must be present in 3D project ring');
+  assert(ringTitles.some((t) => t.includes('SIGNSENSE')), 'SIGNSENSE must be present in 3D project ring');
+  assert(ringTitles.some((t) => t.includes('MEDIKIOSK')), 'MEDIKIOSK must be present in 3D project ring');
+
+  // Test ring rotation step via arrow navigation
+  const nextBtn = await page.$('#scene-work-intro .ring-arrow-btn[data-cursor="NEXT"]');
+  if (nextBtn) {
+    await nextBtn.click();
+    await sleep(400);
+    report.interactions.ringRotatedNext = true;
+  }
+
+  // Snap to SignSense (index 1) and test physical 3D card flip
+  const pips = await page.$$('#scene-work-intro .ring-pip');
+  if (pips.length >= 2) {
+    await pips[1].click(); // Snap to SignSense
+    await sleep(400);
+  }
+
+  // Click active front card to flip
+  const activeCard = await page.$('#scene-work-intro .ring-slot.is-active');
+  if (activeCard) {
+    await activeCard.click();
+    await sleep(500);
+    report.interactions.activeCardFlipped = await page.evaluate(() =>
+      Boolean(document.querySelector('#scene-work-intro .ring-card-flipper.is-flipped'))
     );
-  }
+    assert(report.interactions.activeCardFlipped, 'Expected active 3D project card to flip on click');
+    await page.screenshot({ path: path.join(OUT_DIR, '03b-ring-flipped.png') });
 
-  // Scene 05 SignSense + ASL preset button click + pointer drag
-  report.interactions.signLabel = await captureScene('#scene-signsense', '05-signsense.png', 60);
-  const poseBtns = await page.$$('#scene-signsense .sign-pose');
-  if (poseBtns.length >= 2) {
-    await poseBtns[1].click();
-    await sleep(250);
-    report.interactions.signPoseText = await page.$eval('#scene-signsense .sign-pose.is-active', (el) => el.textContent);
-  }
+    // Verify verified links on backface
+    const liveHref = await page.$eval('#scene-work-intro .ring-card-flipper.is-flipped .ring-btn--live', (el) => el.href);
+    const repoHref = await page.$eval('#scene-work-intro .ring-card-flipper.is-flipped .ring-btn--repo', (el) => el.href);
+    assert(liveHref.startsWith('https://'), `Expected valid Live Demo URL (got ${liveHref})`);
+    assert(repoHref.includes('github.com/PRINCE-CODER679/'), `Expected valid GitHub repo URL (got ${repoHref})`);
 
-  // Scene 06 MediKiosk + Step & Language toggle
-  report.interactions.mediLabel = await captureScene('#scene-medikiosk', '06-medikiosk.png', 60);
-  const langBtns = await page.$$('#scene-medikiosk .medi-lang');
-  if (langBtns.length >= 2) {
-    await langBtns[1].click();
-    await sleep(250);
-    report.interactions.mediLangActive = await page.$eval('#scene-medikiosk .medi-lang.is-active', (el) => el.textContent);
-  }
-
-  // Scene 07 DEVTALKS + flip dossier card + next poster
-  report.interactions.dtLabel = await captureScene('#scene-devtalks', '07-devtalks.png', 60);
-  const dtCard = await page.$('#scene-devtalks .dt-card');
-  if (dtCard) {
-    await dtCard.click();
-    await sleep(250);
-    report.interactions.dtFlipped = await page.$eval('#scene-devtalks .dt-card', (el) => el.classList.contains('is-flipped'));
+    // Test reverse flip via Escape key
+    await page.keyboard.press('Escape');
+    await sleep(350);
+    const flippedAfterEsc = await page.evaluate(() =>
+      Boolean(document.querySelector('#scene-work-intro .ring-card-flipper.is-flipped'))
+    );
+    assert(!flippedAfterEsc, 'Expected card to flip back to front on Escape');
   }
 
   // Scene 08 Toolbox + filter + node selection
@@ -322,16 +340,35 @@ try {
     }
   }
 
-  // Scene 10 Experiment Lab + ASRAR Easter egg overclock
+  // Scene 10 Digital World + ASRAR Easter egg overclock + graceful camera fallback
   report.interactions.labLabel = await captureScene('#scene-lab', '10-lab.png', 40);
+  report.interactions.labSceneVisible = await page.evaluate(() => Boolean(window.__asrar?.scenes?.lab?.visible));
+  report.interactions.labHeadline = await page.$eval('#scene-lab h2', (el) => el.textContent || '');
+  assert(report.interactions.labHeadline.toUpperCase().includes('DIGITAL WORLD'), `Expected Digital World headline in Scene 10 (got ${report.interactions.labHeadline})`);
   await page.keyboard.type('asrar', { delay: 40 });
   await sleep(300);
-  report.interactions.labOverclockState = await page.$eval('#scene-lab .lab__hud', (el) => el.textContent);
+  report.interactions.labOverclockState = await page.$eval('#scene-lab', (el) => Boolean(el.querySelector('.lab__canvas')));
+  const labBtns = await page.$$('#scene-lab .lab__ctrl-btn');
+  for (const btn of labBtns) {
+    const label = await btn.evaluate((el) => el.textContent || '');
+    if (label.includes('HAND CONTROL') || label.includes('HAND PAN')) {
+      await btn.click();
+      await sleep(350);
+      report.interactions.labCamNote = await btn.evaluate((el) => el.textContent || '');
+      if (report.interactions.labCamNote.includes(': ON')) {
+        await btn.click();
+        await sleep(150);
+      }
+      break;
+    }
+  }
   await page.screenshot({ path: path.join(OUT_DIR, '10b-lab-overclock.png') });
 
   // Scene 11 & 12 Direction + Contact
   report.interactions.dirLabel = await captureScene('#scene-direction', '11-direction.png', 40);
   report.interactions.contactLabel = await captureScene('#scene-contact', '12-contact.png', 40);
+  report.interactions.contactProgress = await page.evaluate(() => window.__asrar?.scenes?.contact?.progress ?? 0);
+  assert(report.interactions.contactProgress > 0.1, `Expected Contact finale progress > 0.1 (got ${report.interactions.contactProgress})`);
 
   // Test Fullscreen Menu open/close
   await page.click('.nav__menu-btn');
@@ -367,11 +404,15 @@ try {
 
   // Test Case Study route (/work/signsense) via Case Study CTA + curtain return
   await page.evaluate(() => {
-    const sec = document.querySelector('#scene-signsense');
+    const sec = document.querySelector('#scene-work-intro');
     if (sec) window.scrollTo({ top: sec.getBoundingClientRect().top + window.scrollY, behavior: 'instant' });
   });
   await sleep(350);
-  await page.click('#scene-signsense .btn');
+  await page.evaluate(() => {
+    if (window.__asrar?.openCase) {
+      window.__asrar.openCase('signsense');
+    }
+  });
   await page.waitForFunction(() => location.pathname === '/work/signsense', { timeout: 6000 });
   await sleep(1100);
   report.interactions.caseStudyPath = await page.evaluate(() => location.pathname);
@@ -405,7 +446,7 @@ try {
   await sleep(800);
   await mPage.screenshot({ path: path.join(OUT_DIR, '16-mobile-hero.png') });
   await mPage.evaluate(() => {
-    const el = document.querySelector('#scene-spendsense');
+    const el = document.querySelector('#scene-work-intro');
     if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY, behavior: 'instant' });
   });
   await sleep(500);

@@ -6,13 +6,13 @@ import { scrollToTarget } from '../../hooks/useSmoothScroll';
 import './chrome.css';
 
 const MENU_ITEMS = [
-  { index: '01', label: 'INDEX', target: '#scene-hero', desc: 'Computational 3D rig & exhibition entrance.', accent: '#536BFF', thumb: null },
-  { index: '02', label: 'ABOUT', target: '#scene-about', desc: 'Curious by nature, builder by choice — Pune, IN.', accent: '#FF5924', thumb: null },
-  { index: '03', label: 'WORK', target: '#scene-work-intro', desc: 'SpendSense AI, SignSense AI, MediKiosk & DEVTALKS.', accent: '#536BFF', thumb: PROJECTS[1].screens[0].src },
-  { index: '08', label: 'TOOLBOX', target: '#scene-toolbox', desc: 'Interactive spatial constellation of verified engineering tools.', accent: '#536BFF', thumb: null },
-  { index: '09', label: 'DSA', target: '#scene-dsa', desc: 'Live algorithmic visualizers from verified C/Python practicals.', accent: '#2FD3C4', thumb: null },
-  { index: '10', label: 'LAB', target: '#scene-lab', desc: 'Playable Signal Runner WebGL/Canvas universe.', accent: '#FF5924', thumb: null },
-  { index: '12', label: 'CONTACT', target: '#scene-contact', desc: 'Have an impossible idea? Let’s build it.', accent: '#FF5924', thumb: null },
+  { label: 'INDEX', target: '#scene-hero', desc: 'Volumetric portrait sculpture, orbital lattice & exhibition entrance.', accent: '#536BFF', thumb: null },
+  { label: 'ABOUT', target: '#scene-about', desc: 'Curious by nature, builder by choice — Pune, IN.', accent: '#FF5924', thumb: null },
+  { label: 'WORK', target: '#scene-work-intro', desc: 'SpendSense AI, SignSense AI, MediKiosk & DEVTALKS.', accent: '#536BFF', thumb: PROJECTS[1].screens[0].src },
+  { label: 'TOOLBOX', target: '#scene-toolbox', desc: 'Interactive spatial constellation of verified engineering tools.', accent: '#536BFF', thumb: null },
+  { label: 'DSA', target: '#scene-dsa', desc: 'Live algorithmic visualizers from verified C/Python practicals.', accent: '#2FD3C4', thumb: null },
+  { label: 'DIGITAL WORLD', target: '#scene-lab', desc: "Enter Asrar's Digital World — interactive WebGL exploration.", accent: '#FF5924', thumb: null },
+  { label: 'CONTACT', target: '#scene-contact', desc: 'Have an impossible idea? Let’s build it.', accent: '#FF5924', thumb: null },
 ];
 
 export function FullscreenMenu({ open, onClose }) {
@@ -83,7 +83,7 @@ export function FullscreenMenu({ open, onClose }) {
                   data-cursor="JUMP"
                 >
                   <span className="fs-menu__label">{item.label}</span>
-                  <span className="mono muted">{item.index}</span>
+                  <span className="mono muted fs-menu__arrow" aria-hidden="true">↗</span>
                 </button>
               </li>
             ))}
@@ -91,7 +91,7 @@ export function FullscreenMenu({ open, onClose }) {
         </nav>
 
         <aside className="fs-menu__preview" aria-live="polite">
-          <div className="mono muted">SCENE {hovered.index}</div>
+          <div className="mono muted">SECTOR PREVIEW</div>
           <div className="fs-menu__preview-title">{hovered.label}</div>
           <p>{hovered.desc}</p>
           {hovered.thumb ? (

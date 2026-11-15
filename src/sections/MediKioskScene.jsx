@@ -31,7 +31,7 @@ export function MediKioskScene({ onOpenCase }) {
       <div className="proj-scene__head">
         <div className="proj-scene__title-col">
           <div className="mono section-index" style={{ color: 'var(--clinic)' }}>
-            <span>06 / PROJECT 03 — {project.category}</span>
+            <span>{project.category}</span>
           </div>
           <h3 className="display proj-scene__title">
             <SplitHeadline lines={['MEDI', 'KIOSK.']} as="span" />

@@ -1,196 +1,169 @@
-import { useEffect, useRef, useState } from 'react';
-import { gsap, SCRUB, prefersReducedMotion } from '../animations/motion';
+import { useEffect, useRef } from 'react';
+import { gsap, EASE, ScrollTrigger, prefersReducedMotion } from '../animations/motion';
 import { scenes } from '../utils/store';
-import { scrollToTarget } from '../hooks/useSmoothScroll';
-import { ScrambleText } from '../components/ui/ScrambleText';
 import { SplitHeadline } from '../components/ui/SplitHeadline';
 import { Magnetic } from '../components/ui/Magnetic';
-import { HeroDotField } from '../components/hero/HeroDotField';
-import { HeroPortraitStage } from '../components/hero/HeroPortraitStage';
-import { PROFILE } from '../data/profile';
-import './sections.css';
+import { scrollToTarget } from '../hooks/useSmoothScroll';
+import './hero.css';
 
 /**
- * SCENE 01 — EDITORIAL PHOTOGRAPHIC HERO (RAZORPAY-GRADE INTERACTION + IMAGE TREATMENT)
- * Integrates Asrar's own portrait as the central spatial installation framed around
- * monumental stepped typography, interactive studio key-light / ASCII telemetry aperture,
- * and smooth reversible scroll transition into Scene 02 Cream Daylight.
+ * SCENE 01 — HERO EXHIBITION ("ASRAR MULLA · BUILDING WHAT'S NEXT.")
+ * Features Asrar's ultra-crisp photorealistic 3D portrait integrated inside the
+ * persistent WebGL stage, flanked by editorial typography strictly positioned in
+ * negative space with ZERO UI overlap across the portrait.
  */
 export function HeroSection({ ready }) {
   const sectionRef = useRef(null);
-  const word1Ref = useRef(null);
-  const word2Ref = useRef(null);
-  const word3Ref = useRef(null);
-  const subRef = useRef(null);
-  const portraitWrapRef = useRef(null);
-  const horizonRef = useRef(null);
-  const [stageReadout, setStageReadout] = useState('OPTIC // PORTRAIT LOCK');
+  const ghostRef = useRef(null);
+  const leftFlankRef = useRef(null);
+  const rightFlankRef = useRef(null);
 
+  // Masked staggered opening reveal & continuous reversible ScrollTrigger camera dive
   useEffect(() => {
-    const el = sectionRef.current;
-    if (!el) return undefined;
+    const reduced = prefersReducedMotion();
+    const ctx = gsap.context(() => {
+      if (reduced) {
+        scenes.hero.progress = 0;
+        return;
+      }
 
-    if (prefersReducedMotion()) {
-      scenes.hero.progress = 0;
-      return undefined;
-    }
+      if (ready) {
+        gsap.from('[data-hero-reveal]', {
+          yPercent: 18,
+          opacity: 0,
+          duration: 1.05,
+          stagger: 0.08,
+          ease: EASE.out,
+          clearProps: 'transform,opacity',
+        });
+      }
 
-    const mm = gsap.matchMedia();
+      const applyHeroScroll = (p) => {
+        scenes.hero.progress = p;
+        scenes.hero.visible = p < 0.99;
+        if (ghostRef.current) {
+          const gOp = Math.max(0, 1 - p * 1.45);
+          ghostRef.current.style.opacity = String(gOp);
+          ghostRef.current.style.transform = `translate(-50%, calc(-50% - ${p * 95}px)) scale(${1 + p * 0.08})`;
+        }
+        if (leftFlankRef.current) {
+          const lOp = Math.max(0, 1 - p * 1.55);
+          leftFlankRef.current.style.opacity = String(lOp);
+          leftFlankRef.current.style.transform = `translate3d(0, ${-p * 60}px, 0)`;
+        }
+        if (rightFlankRef.current) {
+          const rOp = Math.max(0, 1 - p * 1.65);
+          rightFlankRef.current.style.opacity = String(rOp);
+          rightFlankRef.current.style.transform = `translate3d(0, ${-p * 50}px, 0)`;
+        }
+      };
 
-    mm.add('(min-width: 768px)', () => {
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: el,
-          start: 'top top',
-          end: '+=135%',
-          pin: true,
-          scrub: SCRUB.camera,
-          anticipatePin: 1,
-          onUpdate: (self) => {
-            scenes.hero.progress = self.progress;
-            const phase =
-              self.progress < 0.25
-                ? 'OPTIC // PORTRAIT LOCK'
-                : self.progress < 0.65
-                ? 'SCAN // ASCII DISSOLVE'
-                : 'HORIZON // CREAM SHIFT';
-            setStageReadout(phase);
-          },
-        },
+      const st = ScrollTrigger.create({
+        trigger: sectionRef.current,
+        start: 'top top',
+        end: 'bottom top',
+        scrub: true,
+        invalidateOnRefresh: true,
+        onUpdate: (self) => applyHeroScroll(self.progress),
+        onRefresh: (self) => applyHeroScroll(window.scrollY <= 2 ? 0 : self.progress),
       });
 
-      tl.to(word1Ref.current, { xPercent: -18, yPercent: -12, opacity: 0.14, ease: 'none' }, 0.16)
-        .to(word2Ref.current, { xPercent: 14, yPercent: -8, opacity: 0.12, ease: 'none' }, 0.2)
-        .to(word3Ref.current, { scale: 1.14, yPercent: 12, opacity: 0, ease: 'none' }, 0.26)
-        .to(subRef.current, { yPercent: 32, opacity: 0, ease: 'none' }, 0.22)
-        .to(portraitWrapRef.current, { yPercent: -8, opacity: 0.25, ease: 'none' }, 0.34)
-        .to(horizonRef.current, { scaleY: 1, ease: 'power2.inOut' }, 0.72);
-    });
+      const onWinScroll = () => {
+        if (window.scrollY <= 2) applyHeroScroll(0);
+      };
+      window.addEventListener('scroll', onWinScroll, { passive: true });
+      return () => {
+        window.removeEventListener('scroll', onWinScroll);
+        st.kill();
+      };
+    }, sectionRef);
 
-    mm.add('(max-width: 767px)', () => {
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: el,
-          start: 'top top',
-          end: 'bottom top',
-          scrub: 0.65,
-          onUpdate: (self) => {
-            scenes.hero.progress = self.progress * 0.75;
-          },
-        },
-      });
-      tl.to(portraitWrapRef.current, { scale: 1.04, opacity: 0.45, ease: 'none' }, 0)
-        .to(word1Ref.current, { xPercent: -8, opacity: 0.4, ease: 'none' }, 0)
-        .to(word2Ref.current, { xPercent: 8, opacity: 0.35, ease: 'none' }, 0);
-    });
-
-    return () => {
-      mm.revert();
-    };
-  }, []);
+    return () => ctx.revert();
+  }, [ready]);
 
   return (
     <section
       id="scene-hero"
       ref={sectionRef}
-      className="hero section"
-      aria-label="Hero — Building What's Next"
+      className="hero-film section"
+      aria-label="Scene 01: Asrar Mulla Hero"
     >
-      <HeroDotField />
-
-      <div className="hero__meta">
-        <div>
-          <div className="mono">
-            <ScrambleText text="ASRAR MULLA" trigger={ready} duration={650} />
-          </div>
-          <div className="mono muted">
-            AI &amp; DATA SCIENCE / CREATIVE DEVELOPMENT
-          </div>
+      <div className="hero-film__pin">
+        {/* Deep background spatial depth wordmark behind 3D figure */}
+        <div ref={ghostRef} className="hero-film__ghost" aria-hidden="true">
+          ASRAR
         </div>
 
-        <div className="hero__cad mono">
-          <span style={{ color: 'var(--cobalt)' }}>●</span>
-          <span>{stageReadout}</span>
-          <span className="muted">· PUNE, IN</span>
-        </div>
-      </div>
-
-      <div className="hero__composition">
-        {/* Left editorial typography column overlapping edge of atmospheric portrait */}
-        <div className="hero__type-col">
-          <h1 className="sr-only">Asrar Mulla — Building What&apos;s Next. AI, Software, Experiments.</h1>
-
-          <div className="hero__eyebrow mono">
-            <span style={{ color: 'var(--signal)' }}>01 //</span> AI / SOFTWARE / EXPERIMENTS
-          </div>
-
-          <div className="hero__stack-words">
-            <div ref={word1Ref} className="hero__word hero__word--1" aria-hidden="true">
-              <SplitHeadline lines={['BUILDING']} immediate delay={0.12} />
+        {/* ===================================================================
+            EDITORIAL DUAL-FLANK ARCHITECTURE
+            Strictly placed in the negative space on left and right margins.
+            The central 3D portrait corridor is completely open and unobstructed.
+            =================================================================== */}
+        <div className="hero-film__stage-grid">
+          {/* LEFT FLANK — Identity, Disciplines & Display Headline */}
+          <div ref={leftFlankRef} className="hero-film__flank hero-film__flank--left">
+            <div className="hero-film__meta" data-hero-reveal>
+              <div className="hero-film__tag mono">
+                <span className="hero-film__live-pulse" aria-hidden="true" />
+                <span>AI &amp; DATA SCIENCE</span>
+              </div>
+              <div className="hero-film__role mono muted">
+                SOFTWARE / AI / CREATIVE DEV
+              </div>
             </div>
 
-            <div ref={word2Ref} className="hero__word hero__word--2" aria-hidden="true">
-              <SplitHeadline lines={["WHAT'S"]} immediate delay={0.22} />
-            </div>
-
-            <div ref={word3Ref} className="hero__word hero__word--3" aria-hidden="true">
-              <SplitHeadline
-                lines={[
-                  <>
-                    NEXT<span className="accent-o">.</span>
-                  </>,
-                ]}
-                immediate
-                delay={0.32}
-              />
+            <div className="hero-film__title-wrap" data-hero-reveal>
+              <div className="hero-film__name-kicker mono">ASRAR MULLA</div>
+              <h1 className="display hero-film__headline">
+                <SplitHeadline lines={['BUILDING', "WHAT'S NEXT."]} as="span" immediate={ready} />
+              </h1>
             </div>
           </div>
 
-          <p ref={subRef} className="hero__sub">
-            Designing and engineering intelligent systems—from computer vision and financial anomaly detection to interactive WebGL worlds.
-          </p>
+          {/* RIGHT FLANK — Action Triggers & Scroll Invitation */}
+          <div ref={rightFlankRef} className="hero-film__flank hero-film__flank--right">
+            <div className="hero-film__actions" data-hero-reveal>
+              <Magnetic>
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={() => scrollToTarget('#scene-work-intro')}
+                  data-cursor="WORK"
+                >
+                  <span>SELECTED WORK</span>
+                  <span className="btn__arrow" aria-hidden="true">↓</span>
+                </button>
+              </Magnetic>
 
-          <div className="hero__actions">
-            <Magnetic>
-              <button
-                type="button"
-                className="btn"
-                onClick={() => scrollToTarget('#scene-work-intro')}
-                data-cursor="WORK"
-              >
-                <span>EXPLORE WORK</span>
-                <span className="btn__arrow" aria-hidden="true">↘</span>
-              </button>
-            </Magnetic>
+              <Magnetic>
+                <button
+                  type="button"
+                  className="btn btn--ghost"
+                  onClick={() => scrollToTarget('#scene-lab')}
+                  data-cursor="WORLD"
+                >
+                  <span>ENTER DIGITAL WORLD</span>
+                  <span className="btn__arrow" aria-hidden="true">→</span>
+                </button>
+              </Magnetic>
+            </div>
 
-            <Magnetic>
-              <button
-                type="button"
-                className="btn btn--ghost"
-                onClick={() => scrollToTarget('#scene-lab')}
-                data-cursor="PLAY"
-              >
-                <span>EXPERIMENT LAB</span>
-              </button>
-            </Magnetic>
+            <div className="hero-film__scroll mono muted" data-hero-reveal>
+              <span>SCROLL TO EXPLORE</span>
+              <span aria-hidden="true">↓</span>
+            </div>
           </div>
         </div>
 
-        {/* Right visual focal plane: Asrar's interactive portrait stage */}
-        <div ref={portraitWrapRef} className="hero__portrait-col">
-          <HeroPortraitStage ready={ready} />
-        </div>
+        {/* WebGL Fallback Identity Portrait Frame (only visible when WebGL disabled) */}
+        <img
+          src="/assets/hero/asrar-3d.png"
+          alt="Asrar Mulla 3D portrait"
+          className="hero-film__fallback-img"
+          width="768"
+          height="1024"
+        />
       </div>
-
-      <div className="hero__foot">
-        <div className="mono muted">
-          DR. D. Y. PATIL INSTITUTE OF TECHNOLOGY · PUNE
-        </div>
-        <div className="mono muted">SCROLL TO ENTER EXHIBITION ↓</div>
-      </div>
-
-      {/* Cream horizon panel rising at end of Hero dive to bridge seamlessly into Scene 02 */}
-      <div ref={horizonRef} className="hero__horizon" aria-hidden="true" />
     </section>
   );
 }

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { gsap, prefersReducedMotion } from '../animations/motion';
+import { gsap, ScrollTrigger, prefersReducedMotion } from '../animations/motion';
 import { scenes } from '../utils/store';
 import { PROFILE } from '../data/profile';
 import { scrollToTarget } from '../hooks/useSmoothScroll';
@@ -25,27 +25,34 @@ export function ContactSection() {
     if (!el) return;
     if (prefersReducedMotion()) {
       scenes.contact.progress = 1;
+      scenes.contact.visible = true;
       return;
     }
 
     const ctx = gsap.context(() => {
-      gsap.to(scenes.contact, {
-        progress: 1,
-        ease: 'none',
-        scrollTrigger: {
-          trigger: el,
-          start: 'top 90%',
-          end: 'top 25%',
-          scrub: 0.8,
-          onLeaveBack: () => {
-            scenes.contact.progress = 0;
-          },
+      ScrollTrigger.create({
+        trigger: el,
+        start: 'top 92%',
+        end: 'bottom bottom',
+        invalidateOnRefresh: true,
+        onUpdate: (self) => {
+          scenes.contact.progress = self.progress;
+          scenes.contact.visible = self.isActive || self.progress > 0.02;
+        },
+        onRefresh: (self) => {
+          scenes.contact.progress = self.progress;
+          scenes.contact.visible = self.isActive || self.progress > 0.02;
+        },
+        onLeaveBack: () => {
+          scenes.contact.progress = 0;
+          scenes.contact.visible = false;
         },
       });
     }, sectionRef);
 
     return () => {
       scenes.contact.progress = 0;
+      scenes.contact.visible = false;
       ctx.revert();
     };
   }, []);
@@ -82,7 +89,7 @@ export function ContactSection() {
       <div className="contact__top">
         <div>
           <div className="mono section-index" style={{ marginBottom: '1rem', color: 'var(--signal)' }}>
-            <span>12 / CLOSING LOOP</span>
+            <span>CLOSING LOOP</span>
           </div>
           <h2 className="display contact__display">
             <SplitHeadline lines={['HAVE AN', 'IMPOSSIBLE', 'IDEA?']} as="span" />
@@ -151,7 +158,7 @@ export function ContactSection() {
           className="contact__link-tile"
           data-cursor="OPEN"
         >
-          <span className="mono muted">01 / SOURCE REPOSITORIES</span>
+          <span className="mono muted">SOURCE REPOSITORIES</span>
           <span style={{ fontFamily: 'var(--f-display)', fontSize: '1.6rem', fontWeight: 800 }}>
             GITHUB · PRINCE-CODER679 ↗
           </span>
@@ -163,13 +170,13 @@ export function ContactSection() {
           className="contact__link-tile"
           data-cursor="OPEN"
         >
-          <span className="mono muted">02 / NETWORK</span>
+          <span className="mono muted">PROFESSIONAL NETWORK</span>
           <span style={{ fontFamily: 'var(--f-display)', fontSize: '1.6rem', fontWeight: 800 }}>
             LINKEDIN · ASRAR MULLA ↗
           </span>
         </a>
         <a href={`mailto:${PROFILE.links.email}`} className="contact__link-tile" data-cursor="MAIL">
-          <span className="mono muted">03 / ELECTRONIC MAIL</span>
+          <span className="mono muted">DIRECT DISPATCH</span>
           <span style={{ fontFamily: 'var(--f-display)', fontSize: '1.6rem', fontWeight: 800 }}>
             {PROFILE.links.email.toUpperCase()} ↗
           </span>

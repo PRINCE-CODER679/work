@@ -56,6 +56,21 @@
   letter-spacing: -0.04em;
   overflow: hidden;
 }
+.boot__center--cinema {
+  gap: clamp(0.9rem, 2vw, 1.4rem);
+}
+.boot__capsule {
+  max-width: 38rem;
+  color: rgba(245, 242, 235, 0.72);
+  font-size: clamp(0.92rem, 1.25vw, 1.12rem);
+  line-height: 1.5;
+}
+.boot__enter-cue {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: rgba(245, 242, 235, 0.62);
+}
 .boot__sub {
   display: flex;
   flex-wrap: wrap;
@@ -175,8 +190,8 @@
   z-index: var(--z-nav);
   height: var(--nav-h);
   padding: 0 var(--gutter);
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  display: flex;
+  justify-content: space-between;
   align-items: center;
   gap: 1rem;
   pointer-events: none;
@@ -489,5 +504,59 @@
   background-image:
     linear-gradient(to right, rgba(83, 107, 255, 0.6) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(83, 107, 255, 0.6) 1px, transparent 1px);
+}
+
+/* ---------- Right-Edge Film Chapter Rail (Desktop Only) ---------- */
+.chapter-rail {
+  position: fixed;
+  right: clamp(0.75rem, 1.4vw, 1.5rem);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: var(--z-nav);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.7rem;
+  pointer-events: none;
+}
+.chapter-rail__dot {
+  pointer-events: auto;
+  display: inline-flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.2rem 0;
+  color: rgba(245, 242, 235, 0.55);
+}
+.chapter-rail__pip {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(245, 242, 235, 0.35);
+  transition: transform 0.3s var(--ease-out), background 0.3s, box-shadow 0.3s;
+}
+.chapter-rail__dot.is-active .chapter-rail__pip {
+  background: var(--signal);
+  transform: scale(1.45);
+  box-shadow: 0 0 10px var(--signal);
+}
+.chapter-rail__tag {
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  opacity: 0;
+  transform: translateX(6px);
+  pointer-events: none;
+  background: rgba(8, 8, 8, 0.85);
+  padding: 0.18rem 0.45rem;
+  border: 1px solid var(--hair);
+  transition: opacity 0.25s, transform 0.25s var(--ease-out);
+}
+.chapter-rail__dot:hover .chapter-rail__tag,
+.chapter-rail__dot:focus-visible .chapter-rail__tag {
+  opacity: 1;
+  transform: translateX(0);
+}
+@media (max-width: 1024px) {
+  .chapter-rail { display: none; }
 }
 
