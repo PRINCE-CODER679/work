@@ -396,12 +396,12 @@
   margin-bottom: clamp(2rem, 5vw, 4.5rem);
 }
 .about__display {
-  font-size: clamp(3rem, 9.8vw, 10.8rem);
-  line-height: 0.85;
+  font-size: clamp(2.8rem, 8.8vw, 9.6rem);
+  line-height: 0.94;
 }
 .about__display--offset {
   display: block;
-  padding-left: clamp(0rem, 8vw, 10rem);
+  padding-left: 0;
 }
 .about__manifesto {
   grid-column: 1 / span 7;
@@ -993,6 +993,27 @@
   flex-direction: column;
   gap: 1.2rem;
 }
+.dsa__ctrl-btn,
+.lab__btn {
+  padding: 0.45rem 0.85rem;
+  border: 1px solid var(--hair);
+  background: rgba(18, 18, 24, 0.92);
+  color: rgba(245, 242, 235, 0.85);
+  font-family: var(--f-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.22s, color 0.22s, border-color 0.22s;
+}
+.dsa__ctrl-btn:hover,
+.dsa__ctrl-btn.is-on,
+.lab__btn:hover,
+.lab__btn.is-on {
+  background: var(--paper);
+  color: var(--ink);
+  border-color: var(--paper);
+}
 .dsa__viz {
   min-height: 210px;
   border: 1px solid var(--hair);
@@ -1064,23 +1085,23 @@
   position: relative;
   z-index: 2;
   pointer-events: none;
-  padding: clamp(4rem, 8vw, 6.5rem) var(--gutter) 1rem var(--gutter);
+  padding: calc(var(--nav-h) + 0.8rem) var(--gutter) 0.5rem var(--gutter);
 }
 .lab__title {
-  font-size: clamp(2.2rem, 7.6vw, 7.4rem);
-  line-height: 0.88;
+  font-size: clamp(1.85rem, 4.4vw, 4.2rem);
+  line-height: 0.94;
 }
 .lab__subline {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
-  gap: 1rem;
-  margin-top: 1.2rem;
-  font-size: 0.82rem;
+  gap: 0.65rem 1.2rem;
+  margin-top: 0.75rem;
+  font-size: 0.76rem;
   letter-spacing: 0.12em;
   color: var(--muted);
-  max-width: 900px;
+  max-width: 680px;
 }
 .lab__counter {
   font-weight: 700;
@@ -1265,8 +1286,8 @@
   min-width: 0;
 }
 .contact__display {
-  font-size: clamp(2.3rem, 5.4vw, 5.4rem);
-  line-height: 0.88;
+  font-size: clamp(2.2rem, 5.2vw, 5.2rem);
+  line-height: 0.95;
 }
 .contact__form-wrap {
   border: 1px solid var(--hair);
@@ -1296,7 +1317,7 @@
   border-bottom: 1px solid var(--hair);
 }
 .contact__link-tile {
-  padding: 1.5rem 1rem;
+  padding: 1.5rem 1.2rem;
   min-width: 0;
   max-width: 100%;
   overflow-wrap: anywhere;
@@ -1306,7 +1327,8 @@
   gap: 0.45rem;
   transition: background 0.35s var(--ease-out);
 }
-.contact__link-tile:last-child { border-right: 0; }
+.contact__link-tile:first-child { padding-left: 0; }
+.contact__link-tile:last-child { border-right: 0; padding-right: 0; }
 .contact__link-tile:hover {
   background: rgba(255, 89, 36, 0.1);
 }

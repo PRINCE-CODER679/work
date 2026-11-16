@@ -1,0 +1,529 @@
+/* ==========================================================================
+   SCENE 02 — IDENTITY ("THE HUMAN BEHIND THE CODE.")
+   Deep graphite & violet atmospheric editorial storytelling
+   ========================================================================== */
+
+#scene-about.id-section {
+  position: relative;
+  background:
+    radial-gradient(65% 42% at 50% 18%, rgba(124, 58, 237, 0.16) 0%, rgba(16, 14, 28, 0.45) 58%, transparent 100%),
+    radial-gradient(55% 38% at 50% 56%, rgba(83, 107, 255, 0.12) 0%, transparent 72%),
+    linear-gradient(180deg, #08080a 0%, #0d0c15 24%, #100e1b 68%, #08080a 100%);
+  color: var(--paper);
+  padding: clamp(5rem, 9vw, 8.5rem) var(--gutter) clamp(5rem, 9vw, 8.5rem);
+  z-index: 4;
+  overflow: clip;
+  border-top: 1px solid rgba(192, 132, 252, 0.16);
+  border-bottom: 1px solid rgba(245, 242, 235, 0.1);
+}
+
+.id-section__bg-orbits {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ==========================================================================
+   EXPERIENCE 1 — CINEMATIC ENTRANCE ("THE HUMAN BEHIND THE CODE.")
+   ========================================================================== */
+.id-entrance {
+  position: relative;
+  z-index: 2;
+  max-width: var(--max-w);
+  margin: 0 auto;
+  scroll-margin-top: calc(var(--nav-h) + 1.5rem);
+}
+
+.id-entrance__top {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem 1.5rem;
+  color: rgba(245, 242, 235, 0.68);
+  margin-bottom: clamp(1.6rem, 3.2vw, 2.8rem);
+}
+
+.id-entrance__coords {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  color: #c4b5fd;
+}
+
+.id-entrance__sep {
+  opacity: 0.5;
+}
+
+.id-entrance__headline {
+  display: flex;
+  flex-direction: column;
+  gap: 0.08em;
+  font-size: clamp(2.8rem, 9.2vw, 9.8rem);
+  line-height: 0.94;
+  letter-spacing: -0.045em;
+  color: #ffffff;
+}
+
+.id-entrance__row {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 0.24em;
+  row-gap: 0.04em;
+}
+
+.id-entrance__row--accent .id-word-inner {
+  background: linear-gradient(180deg, #ffffff 0%, #e9d5ff 42%, #a78bfa 82%, #f5f3ff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.id-word-mask {
+  display: inline-block;
+  overflow: hidden;
+  padding-top: 0.04em;
+  padding-bottom: 0.12em;
+  margin-top: -0.04em;
+  margin-bottom: -0.08em;
+}
+
+.id-word-inner {
+  display: inline-block;
+  will-change: transform, opacity;
+}
+
+.id-entrance__manifesto-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.65fr);
+  gap: clamp(1.8rem, 4vw, 4rem);
+  align-items: start;
+  margin-top: clamp(2.4rem, 5vw, 4.4rem);
+  padding-top: clamp(1.8rem, 3vw, 2.6rem);
+  border-top: 1px solid rgba(245, 242, 235, 0.12);
+}
+
+.id-entrance__manifesto {
+  font-size: clamp(1.35rem, 2.5vw, 2.35rem);
+  line-height: 1.32;
+  letter-spacing: -0.02em;
+  font-weight: 500;
+  color: var(--paper);
+}
+
+.id-manifesto-word {
+  display: inline-block;
+  margin-right: 0.28em;
+  opacity: 0.56;
+  transition: color 0.3s ease;
+}
+
+.id-manifesto-word.is-accent {
+  color: #c084fc;
+  font-weight: 700;
+}
+
+.id-entrance__credentials {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  border-left: 1px solid rgba(192, 132, 252, 0.24);
+  padding-left: 1.35rem;
+}
+
+.id-credential {
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+}
+
+.id-credential__label {
+  font-size: 0.64rem;
+  letter-spacing: 0.16em;
+  color: #a78bfa;
+}
+
+.id-credential__val {
+  font-family: var(--f-body);
+  font-size: 0.92rem;
+  line-height: 1.45;
+  text-transform: none;
+  letter-spacing: 0;
+  color: rgba(245, 242, 235, 0.88);
+}
+
+/* ==========================================================================
+   EXPERIENCE 2 & 3 — INTERACTIVE 3D IDENTITY SCULPTURE & SCROLL STORY
+   ========================================================================== */
+.id-story {
+  position: relative;
+  z-index: 2;
+  max-width: var(--max-w);
+  margin: clamp(3.5rem, 7vw, 6.5rem) auto;
+  min-height: 165vh;
+}
+
+.id-story__sticky {
+  position: sticky;
+  top: calc(var(--nav-h) + 1.2rem);
+  min-height: calc(100svh - var(--nav-h) - 2.4rem);
+  display: grid;
+  grid-template-columns: minmax(250px, 0.88fr) minmax(280px, 1.08fr) minmax(280px, 1.04fr);
+  gap: clamp(1.2rem, 2.6vw, 2.6rem);
+  align-items: center;
+  padding: clamp(1.2rem, 2.4vw, 2rem);
+  border: 1px solid rgba(192, 132, 252, 0.2);
+  background:
+    radial-gradient(55% 55% at 50% 50%, rgba(139, 92, 246, 0.1) 0%, rgba(10, 9, 18, 0.82) 72%),
+    rgba(11, 10, 19, 0.78);
+  backdrop-filter: blur(10px);
+}
+
+/* Left Column: 4-Chapter Selector */
+.id-story__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.id-story__nav-label {
+  font-size: 0.66rem;
+  letter-spacing: 0.16em;
+  color: rgba(245, 242, 235, 0.52);
+  margin-bottom: 0.35rem;
+}
+
+.id-chapter-tab {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  width: 100%;
+  padding: 0.88rem 1rem;
+  border: 1px solid rgba(245, 242, 235, 0.1);
+  background: rgba(255, 255, 255, 0.02);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.3s ease, background 0.3s ease, transform 0.3s ease;
+}
+
+.id-chapter-tab:hover,
+.id-chapter-tab.is-active {
+  border-color: var(--chap-color, #a855f7);
+  background: rgba(168, 85, 247, 0.11);
+  transform: translateX(4px);
+}
+
+.id-chapter-tab__idx {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--chap-color, #a855f7);
+  padding-top: 0.1rem;
+}
+
+.id-chapter-tab__text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.id-chapter-tab__title {
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: 1.02rem;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  color: #ffffff;
+}
+
+.id-chapter-tab__kicker {
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  color: rgba(245, 242, 235, 0.56);
+}
+
+/* Center Column: 3D Sculpture & SVG Orbit */
+.id-story__centerpiece {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 360px;
+}
+
+.id-story__orbit-svg {
+  position: absolute;
+  width: min(330px, 100%);
+  height: min(330px, 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.id-sculpture {
+  position: relative;
+  width: min(340px, 100%);
+  height: 340px;
+  z-index: 2;
+}
+
+.id-sculpture__canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.id-sculpture__ambient {
+  position: absolute;
+  inset: 14%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.24) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.id-story__core-badge {
+  position: relative;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.34rem 0.78rem;
+  border: 1px solid rgba(192, 132, 252, 0.3);
+  border-radius: 999px;
+  background: rgba(9, 8, 16, 0.85);
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  color: #e9d5ff;
+  margin-top: 0.4rem;
+}
+
+/* Right Column: Active Chapter Dossier */
+.id-story__dossier {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  padding: 1.25rem;
+  border: 1px solid rgba(245, 242, 235, 0.12);
+  background: rgba(14, 12, 24, 0.82);
+  animation: idDossierReveal 0.42s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes idDossierReveal {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.id-story__dossier-idx {
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  font-weight: 700;
+}
+
+.id-story__dossier-title {
+  font-size: clamp(1.65rem, 2.6vw, 2.35rem);
+  line-height: 0.96;
+  color: #ffffff;
+}
+
+.id-story__dossier-body {
+  font-size: 0.92rem;
+  line-height: 1.56;
+  color: rgba(245, 242, 235, 0.84);
+}
+
+.id-story__metrics {
+  display: grid;
+  gap: 0.65rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(245, 242, 235, 0.1);
+}
+
+.id-story__metric {
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+}
+
+.id-story__metric-label {
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  color: rgba(245, 242, 235, 0.52);
+}
+
+.id-story__metric-val {
+  font-size: 0.84rem;
+  color: #f5f2eb;
+  font-weight: 500;
+}
+
+.id-story__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding-top: 0.35rem;
+}
+
+.id-story__tag {
+  padding: 0.3rem 0.62rem;
+  border: 1px solid rgba(192, 132, 252, 0.28);
+  background: rgba(168, 85, 247, 0.08);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  color: #e9d5ff;
+}
+
+/* ==========================================================================
+   EXPERIENCE 4 — THE FINAL IDENTITY REVEAL
+   ("I DON'T JUST WRITE CODE. I BUILD EXPERIENCES.")
+   ========================================================================== */
+.id-finale {
+  position: relative;
+  z-index: 2;
+  max-width: var(--max-w);
+  margin: clamp(3.5rem, 7vw, 6rem) auto 0;
+  padding-top: clamp(2.5rem, 5vw, 4.5rem);
+  border-top: 1px solid rgba(192, 132, 252, 0.22);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  scroll-margin-top: calc(var(--nav-h) + 1.5rem);
+}
+
+.id-finale__orbit-line {
+  width: min(320px, 65vw);
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #a855f7, #ffffff, #536bff, transparent);
+  box-shadow: 0 0 18px rgba(168, 85, 247, 0.65);
+}
+
+.id-finale__kicker {
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
+  color: #c4b5fd;
+}
+
+.id-finale__statement {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1em;
+  font-size: clamp(2.1rem, 6.6vw, 6.8rem);
+  line-height: 0.96;
+  letter-spacing: -0.04em;
+  color: #ffffff;
+}
+
+.id-finale__mask {
+  display: block;
+  overflow: hidden;
+  padding-top: 0.05em;
+  padding-bottom: 0.14em;
+  margin-top: -0.05em;
+  margin-bottom: -0.08em;
+}
+
+.id-finale__line {
+  display: block;
+  will-change: transform, opacity;
+}
+
+.id-finale__line--metallic {
+  background: linear-gradient(90deg, #ffffff 0%, #e9d5ff 32%, #a855f7 68%, #ffffff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 26px rgba(168, 85, 247, 0.35));
+}
+
+/* ==========================================================================
+   RESPONSIVE DESIGN — TABLET & MOBILE ART DIRECTION
+   ========================================================================== */
+@media (max-width: 1080px) {
+  .id-entrance__manifesto-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .id-story {
+    min-height: auto;
+  }
+
+  .id-story__sticky {
+    position: relative;
+    top: 0;
+    min-height: auto;
+    grid-template-columns: 1fr;
+    gap: 1.4rem;
+  }
+
+  .id-story__nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+
+  .id-story__nav-label {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 640px) {
+  #scene-about.id-section {
+    padding: 4.5rem var(--gutter) 4.2rem;
+  }
+
+  .id-entrance__headline {
+    font-size: clamp(2.25rem, 10.6vw, 3.6rem);
+  }
+
+  .id-entrance__manifesto {
+    font-size: clamp(1.18rem, 5.1vw, 1.5rem);
+  }
+
+  .id-story__sticky {
+    padding: 1rem;
+  }
+
+  .id-story__nav {
+    grid-template-columns: 1fr;
+  }
+
+  .id-chapter-tab {
+    padding: 0.72rem 0.85rem;
+  }
+
+  .id-story__centerpiece {
+    min-height: 260px;
+  }
+
+  .id-sculpture {
+    width: 240px;
+    height: 240px;
+  }
+
+  .id-story__orbit-svg {
+    width: 235px;
+    height: 235px;
+  }
+
+  .id-story__dossier {
+    padding: 1rem;
+  }
+
+  .id-finale__statement {
+    font-size: clamp(1.75rem, 8.2vw, 2.8rem);
+  }
+}

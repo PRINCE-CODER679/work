@@ -16,7 +16,7 @@ export function DirectionSection() {
         <span>CURRENT VECTOR</span>
       </div>
 
-      <h2 className="display" style={{ fontSize: 'clamp(2.8rem, 8vw, 8.2rem)', lineHeight: 0.85 }}>
+      <h2 className="display" style={{ fontSize: 'clamp(2.2rem, 6.8vw, 7.2rem)', lineHeight: 0.94 }}>
         <SplitHeadline lines={['CURRENTLY', 'BUILDING', 'THE NEXT THING.']} as="span" />
       </h2>
 

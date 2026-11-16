@@ -8,11 +8,11 @@ import './sections.css';
 import './digitalUniverse.css';
 
 export const DOMAIN_NODES = [
-  { id: 'ai', label: 'AI / ML', rx: 0.22, ry: 0.34, color: '#536BFF', fact: 'SpendSense & SignSense ML pipelines' },
-  { id: 'cv', label: 'VISION', rx: 0.78, ry: 0.30, color: '#FF5924', fact: '21-landmark 3D hand tracking' },
-  { id: 'api', label: 'FASTAPI', rx: 0.50, ry: 0.50, color: '#F5F2EB', fact: 'Async Python inference & DB APIs' },
-  { id: 'med', label: 'CLINICAL', rx: 0.25, ry: 0.72, color: '#2FD3C4', fact: 'Multilingual patient intake kiosk' },
-  { id: 'web', label: 'WEBGL', rx: 0.75, ry: 0.72, color: '#A855F7', fact: 'Three.js, GLSL shaders & GSAP' },
+  { id: 'ai', label: 'AI / ML', rx: 0.22, ry: 0.40, color: '#536BFF', fact: 'SpendSense & SignSense ML pipelines' },
+  { id: 'cv', label: 'VISION', rx: 0.78, ry: 0.38, color: '#FF5924', fact: '21-landmark 3D hand tracking' },
+  { id: 'api', label: 'FASTAPI', rx: 0.50, ry: 0.51, color: '#F5F2EB', fact: 'Async Python inference & DB APIs' },
+  { id: 'med', label: 'CLINICAL', rx: 0.25, ry: 0.64, color: '#2FD3C4', fact: 'Multilingual patient intake kiosk' },
+  { id: 'web', label: 'WEBGL', rx: 0.75, ry: 0.63, color: '#A855F7', fact: 'Three.js, GLSL shaders & GSAP' },
 ];
 
 /**

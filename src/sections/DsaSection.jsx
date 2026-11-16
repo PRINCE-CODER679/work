@@ -245,22 +245,29 @@ export function DsaSection() {
               <p style={{ marginTop: '0.25rem', fontSize: '0.92rem' }}>{mod.summary}</p>
             </div>
 
-            <div style={{ display: 'flex', gap: '0.45rem' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem' }}>
               <button
                 type="button"
-                className="lab__btn"
+                className="dsa__ctrl-btn lab__btn"
                 onClick={() => setStep((s) => (s >= maxSteps ? 1 : s + 1))}
               >
                 STEP ({step}/{maxSteps})
               </button>
               <button
                 type="button"
-                className={`lab__btn ${auto ? 'is-on' : ''}`}
+                className={`dsa__ctrl-btn lab__btn ${auto ? 'is-on' : ''}`}
                 onClick={() => setAuto((a) => !a)}
               >
                 {auto ? 'PAUSE' : 'AUTO'}
               </button>
-              <button type="button" className="lab__btn" onClick={() => { setAuto(false); setStep(1); }}>
+              <button
+                type="button"
+                className="dsa__ctrl-btn lab__btn"
+                onClick={() => {
+                  setAuto(false);
+                  setStep(1);
+                }}
+              >
                 RESET
               </button>
             </div>

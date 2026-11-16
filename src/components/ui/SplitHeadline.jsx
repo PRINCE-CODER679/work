@@ -37,6 +37,9 @@ export function SplitHeadline({
           ease: EASE.type,
           delay: immediate ? delay : 0,
           clearProps: 'transform,opacity',
+          onComplete: () => {
+            el.classList.add('split-revealed');
+          },
         });
       };
 
