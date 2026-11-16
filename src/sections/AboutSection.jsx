@@ -1,484 +1,420 @@
 import { useEffect, useRef, useState } from 'react';
-import { gsap, ScrollTrigger, EASE, SCRUB, prefersReducedMotion } from '../animations/motion';
+import { gsap, ScrollTrigger, prefersReducedMotion } from '../animations/motion';
 import { PROFILE } from '../data/profile';
-import { IdentitySculpture3D } from '../components/about/IdentitySculpture3D';
+import { IdentityParticlesCanvas } from '../components/about/IdentityParticlesCanvas';
 import './identity.css';
 
-const ENTRANCE_WORDS = ['THE', 'HUMAN', 'BEHIND', 'THE', 'CODE.'];
-
-const MANIFESTO_WORDS = [
-  { text: "I'm", accent: false },
-  { text: 'Asrar', accent: true },
-  { text: 'Mulla—an', accent: false },
-  { text: 'AI', accent: true },
-  { text: '&', accent: true },
-  { text: 'Data', accent: true },
-  { text: 'Science', accent: true },
-  { text: 'student', accent: false },
-  { text: 'in', accent: false },
-  { text: 'Pune', accent: false },
-  { text: 'turning', accent: false },
-  { text: 'machine', accent: false },
-  { text: 'learning', accent: false },
-  { text: 'pipelines,', accent: false },
-  { text: 'FastAPI', accent: true },
-  { text: 'architectures,', accent: false },
-  { text: 'and', accent: false },
-  { text: 'real-time', accent: false },
-  { text: '3D', accent: true },
-  { text: 'WebGL', accent: true },
-  { text: 'into', accent: false },
-  { text: 'living', accent: false },
-  { text: 'digital', accent: false },
-  { text: 'products.', accent: false },
-];
-
-export const IDENTITY_CHAPTERS = [
+/**
+ * Verified 4 Identity Facets preserving approved copy & interactive portfolio context.
+ */
+const IDENTITY_FACETS = [
   {
+    id: 'ai-ds',
     index: '01',
+    shortLabel: 'AI & DS',
     title: 'AI & DATA SCIENCE',
-    kicker: 'INTELLIGENT PIPELINES & APPLIED ML',
-    accent: '#A855F7',
-    narrative:
-      'Pursuing AI & Data Science at Dr. D. Y. Patil Institute of Technology, Pimpri, Pune and contributing as a Technical Member of the DSAII Club (2026 — Present). Engineering origin- and scale-invariant 21-landmark 3D hand tracking with MediaPipe & scikit-learn (SignSense AI) alongside automated CSV/XLSX spending categorization, anomaly alerts, and monthly forecasting (SpendSense AI).',
-    metrics: [
-      { label: 'INSTITUTION', value: PROFILE.institution },
-      { label: 'INITIATIVE', value: `${PROFILE.club.role} · ${PROFILE.club.name}` },
-    ],
-    tags: ['MediaPipe 3D Vision', 'scikit-learn', 'Pandas & NumPy', 'Anomaly Detection'],
+    tags: 'MODELS · DATA · INTELLIGENCE',
+    haloAngle: -16,
+    detail:
+      'B.E. AI & Data Science (DY Patil, Pune) · SignSense AI 21-landmark 3D vision & SpendSense AI forecasting.',
   },
   {
+    id: 'software',
     index: '02',
+    shortLabel: 'DEVELOPMENT',
     title: 'SOFTWARE DEVELOPMENT',
-    kicker: 'FULL-STACK & CLINICAL SYSTEMS ARCHITECTURE',
-    accent: '#536BFF',
-    narrative:
-      'Architecting resilient full-stack applications that pair typed FastAPI REST services, Pydantic contracts, and async MongoDB / SQLAlchemy persistence with responsive React + Vite interfaces—including MediKiosk for Smart India Hackathon 2026, bridging multilingual (English, हिंदी, मराठी) patient self-check-in kiosks with physician red-flag triage portals, grounded in C and Python data structures (raambad-ilaaj).',
-    metrics: [
-      { label: 'BACKEND CORE', value: 'FastAPI · Pydantic · MongoDB (Motor) · SQLAlchemy' },
-      { label: 'ALGORITHMIC BASE', value: 'C & Python DSA (PRINCE-CODER679/raambad-ilaaj)' },
-    ],
-    tags: ['FastAPI', 'React & Vite', 'MongoDB & SQL', 'SIH 2026 MediKiosk'],
+    tags: 'FULL-STACK · PRODUCTS · SYSTEMS',
+    haloAngle: 28,
+    detail:
+      'React, FastAPI, Python, Node.js, MongoDB & SQL · MediKiosk multilingual triage kiosk & live doctor queue.',
   },
   {
+    id: 'creative',
     index: '03',
+    shortLabel: 'CREATIVE',
     title: 'CREATIVE ENGINEERING',
-    kicker: 'WEBGL, SHADERS & KINETIC STORYTELLING',
-    accent: '#FF5924',
-    narrative:
-      "Where systems engineering meets cinema-grade art direction. Crafting custom Three.js 3D stages, GLSL shaders, GSAP ScrollTrigger choreography, and tactile interactive installations—including the 3D coverflow mystery-speaker dossier ring and community prediction platform built for DevKraft's flagship event DEVTALKS '26.",
-    metrics: [
-      { label: 'FEATURED INSTALLATION', value: PROFILE.eventRole.name },
-      { label: 'GRAPHICS STACK', value: 'Three.js · React Three Fiber · Custom GLSL · GSAP' },
-    ],
-    tags: ['Three.js & WebGL', 'Custom GLSL Shaders', 'GSAP Choreography', "DEVTALKS '26"],
+    tags: 'WEBGL · 3D · INTERACTIVE WEB',
+    haloAngle: 72,
+    detail:
+      "Three.js, WebGL shaders & GSAP choreography · Built DEVTALKS '26 mystery-speaker reveal for DevKraft.",
   },
   {
+    id: 'builder',
     index: '04',
+    shortLabel: 'BUILDER',
     title: "BUILDING WHAT'S NEXT",
-    kicker: 'FROM ALGORITHMS TO LIVING EXPERIENCES',
-    accent: '#C084FC',
-    narrative:
-      'Focused on closing the gap between raw technical capability and human experience—turning complex workflows across personal finance, sign language accessibility, outpatient clinical intake, and interactive 3D web architecture into fast, expressive tools people genuinely enjoy using.',
-    metrics: [
-      { label: 'BASE COORDINATES', value: PROFILE.location },
-      { label: 'OPEN SOURCE', value: `github.com/${PROFILE.handle}` },
-    ],
-    tags: ['AI Products', 'Machine Learning', 'Creative Frontend', 'Full-Stack Systems'],
+    tags: 'IDEAS · EXPERIMENTS · REAL IMPACT',
+    haloAngle: 118,
+    detail:
+      `Technical Member, DSAII Club (${PROFILE.club.period}) · Prototyping AI products in ${PROFILE.location}.`,
   },
 ];
+
+function FacetIcon({ id }) {
+  if (id === 'ai-ds') {
+    return (
+      <svg viewBox="0 0 40 40" className="id-facet__icon-svg" aria-hidden="true">
+        <polygon points="20,6 27,10 20,14 13,10" fill="none" stroke="currentColor" strokeWidth="1.35" strokeLinejoin="round" />
+        <polyline points="13,10 13,18 20,22 27,18 27,10" fill="none" stroke="currentColor" strokeWidth="1.35" strokeLinejoin="round" />
+        <line x1="20" y1="14" x2="20" y2="22" stroke="currentColor" strokeWidth="1.35" />
+        <polygon points="13,18 20,22 13,26 6,22" fill="none" stroke="currentColor" strokeWidth="1.35" strokeLinejoin="round" />
+        <polyline points="6,22 6,30 13,34 20,30 20,22" fill="none" stroke="currentColor" strokeWidth="1.35" strokeLinejoin="round" />
+        <line x1="13" y1="26" x2="13" y2="34" stroke="currentColor" strokeWidth="1.35" />
+        <polygon points="27,18 34,22 27,26 20,22" fill="none" stroke="currentColor" strokeWidth="1.35" strokeLinejoin="round" />
+        <polyline points="20,22 20,30 27,34 34,30 34,22" fill="none" stroke="currentColor" strokeWidth="1.35" strokeLinejoin="round" />
+        <line x1="27" y1="26" x2="27" y2="34" stroke="currentColor" strokeWidth="1.35" />
+      </svg>
+    );
+  }
+  if (id === 'software') {
+    return (
+      <svg viewBox="0 0 40 40" className="id-facet__icon-svg" aria-hidden="true">
+        <polyline points="14,13 7,20 14,27" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        <polyline points="26,13 33,20 26,27" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        <line x1="22.5" y1="11" x2="17.5" y2="29" stroke="currentColor" strokeWidth="1.45" strokeLinecap="round" />
+      </svg>
+    );
+  }
+  if (id === 'creative') {
+    return (
+      <svg viewBox="0 0 40 40" className="id-facet__icon-svg" aria-hidden="true">
+        <path d="M 7 14 Q 13.5 9, 20 14 T 33 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        <path d="M 7 20 Q 13.5 15, 20 20 T 33 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        <path d="M 7 26 Q 13.5 21, 20 26 T 33 26" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 40 40" className="id-facet__icon-svg" aria-hidden="true">
+      <circle cx="20" cy="20" r="7.5" fill="none" stroke="currentColor" strokeWidth="1.4" />
+      <ellipse
+        cx="20"
+        cy="20"
+        rx="14.5"
+        ry="5.2"
+        transform="rotate(-28 20 20)"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.4"
+      />
+      <circle cx="29.5" cy="12.5" r="1.35" fill="currentColor" />
+    </svg>
+  );
+}
 
 /**
  * SCENE 02 — IDENTITY ("THE HUMAN BEHIND THE CODE.")
- * Four-part scroll-driven personal introduction:
- * 1) Cinematic Entrance ("THE HUMAN BEHIND THE CODE." word-by-word reveal)
- * 2) Interactive 3D Identity Sculpture (metallic core + frosted glass + orbital rings)
- * 3) Paced 4-Chapter Scroll Story (01 AI & Data Science -> 04 Building What's Next)
- * 4) Final Identity Reveal ("I DON'T JUST WRITE CODE. I BUILD EXPERIENCES.")
+ * Faithful composition preserving the approved purple portrait artwork on the left,
+ * separated interactive HTML/CSS/SVG left-module index, Bodoni Moda editorial heading,
+ * intro copy, 2x2 corner-bracketed cards, and extracted bottom-right wireframe terrain.
  */
 export function AboutSection() {
   const sectionRef = useRef(null);
-  const entranceRef = useRef(null);
-  const wordsWrapRef = useRef(null);
-  const storyStageRef = useRef(null);
-  const storyPinRef = useRef(null);
-  const finaleRef = useRef(null);
-  const orbitArcRef = useRef(null);
+  const [activeIdx, setActiveIdx] = useState(0);
+  const [interacted, setInteracted] = useState(false);
+  const [inView, setInView] = useState(true);
 
-  const sculptureProgressRef = useRef(0);
-  const activeChapterRef = useRef(0);
-  const [activeChapter, setActiveChapter] = useState(0);
+  const activeFacet = IDENTITY_FACETS[activeIdx] || IDENTITY_FACETS[0];
 
+  const selectFacet = (idx, isUserInteraction = true) => {
+    setActiveIdx(idx);
+    if (isUserInteraction) setInteracted(true);
+  };
+
+  // Pause particle drift off-screen
   useEffect(() => {
     const el = sectionRef.current;
-    if (!el) return;
+    if (!el || typeof IntersectionObserver === 'undefined') return undefined;
+    const io = new IntersectionObserver(
+      ([entry]) => setInView(entry.isIntersecting),
+      { rootMargin: '180px 0px' }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
 
-    const reduced = prefersReducedMotion();
+  // Subtle restrained cursor atmospheric glow (portrait itself never moves or distorts)
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el || prefersReducedMotion()) return undefined;
+
+    let rafId = 0;
+    let tx = 0;
+    let ty = 0;
+    let cx = 0;
+    let cy = 0;
+
+    const onMove = (e) => {
+      const rect = el.getBoundingClientRect();
+      if (rect.bottom < 0 || rect.top > window.innerHeight) return;
+      tx = Math.max(-1, Math.min(1, ((e.clientX - rect.left) / Math.max(1, rect.width)) * 2 - 1));
+      ty = Math.max(-1, Math.min(1, ((e.clientY - rect.top) / Math.max(1, rect.height)) * 2 - 1));
+      if (!rafId) rafId = window.requestAnimationFrame(tick);
+    };
+
+    const tick = () => {
+      cx += (tx - cx) * 0.08;
+      cy += (ty - cy) * 0.08;
+      el.style.setProperty('--id-px', cx.toFixed(4));
+      el.style.setProperty('--id-py', cy.toFixed(4));
+      if (Math.abs(tx - cx) > 0.003 || Math.abs(ty - cy) > 0.003) {
+        rafId = window.requestAnimationFrame(tick);
+      } else {
+        rafId = 0;
+      }
+    };
+
+    window.addEventListener('pointermove', onMove, { passive: true });
+    return () => {
+      window.removeEventListener('pointermove', onMove);
+      if (rafId) window.cancelAnimationFrame(rafId);
+    };
+  }, []);
+
+  // Scroll-triggered soft entrance
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el || prefersReducedMotion()) return undefined;
+
     const ctx = gsap.context(() => {
-      const entranceWords = el.querySelectorAll('[data-id-entrance-word]');
-      const manifestoWords = el.querySelectorAll('[data-manifesto-word]');
-      const finaleLines = el.querySelectorAll('[data-id-finale-line]');
+      const artwork = el.querySelector('.id-artwork-desktop');
+      const mobileArt = el.querySelector('.id-artwork-mobile');
+      const headingLines = el.querySelectorAll('.id-heading__line-inner');
+      const introBlock = el.querySelector('.id-editorial__intro');
+      const facetCards = el.querySelectorAll('.id-facet');
 
-      if (reduced) {
-        gsap.set([entranceWords, manifestoWords, finaleLines], {
-          yPercent: 0,
-          opacity: 1,
-          clearProps: 'all',
-        });
-        return;
-      }
+      const playEntrance = () => {
+        if (el.dataset.entered === '1') return;
+        el.dataset.entered = '1';
 
-      // EXPERIENCE 1: Word-by-word entrance reveal for "THE HUMAN BEHIND THE CODE."
-      let entranceDone = false;
-      const revealEntrance = () => {
-        if (entranceDone || !entranceWords.length) return;
-        entranceDone = true;
-        gsap.to(entranceWords, {
-          yPercent: 0,
-          opacity: 1,
-          duration: 0.9,
-          stagger: 0.08,
-          ease: EASE.type,
-          clearProps: 'transform,opacity',
-        });
+        const tl = gsap.timeline({ defaults: { ease: 'power3.out', overwrite: 'auto' } });
+
+        if (artwork) {
+          tl.fromTo(artwork, { opacity: 0.25 }, { opacity: 1, duration: 1.15 }, 0);
+        }
+        if (mobileArt) {
+          tl.fromTo(mobileArt, { opacity: 0.25 }, { opacity: 1, duration: 1.05 }, 0);
+        }
+        if (headingLines.length) {
+          tl.fromTo(
+            headingLines,
+            { yPercent: 100, opacity: 0 },
+            { yPercent: 0, opacity: 1, duration: 0.85, stagger: 0.09 },
+            0.12
+          );
+        }
+        if (introBlock) {
+          tl.fromTo(introBlock, { y: 12, opacity: 0 }, { y: 0, opacity: 1, duration: 0.72 }, 0.34);
+        }
+        if (facetCards.length) {
+          tl.fromTo(
+            facetCards,
+            { y: 16, opacity: 0 },
+            { y: 0, opacity: 1, duration: 0.62, stagger: 0.075 },
+            0.4
+          );
+        }
       };
 
-      if (entranceWords.length && entranceRef.current) {
-        gsap.set(entranceWords, { yPercent: 108, opacity: 0.001 });
-        ScrollTrigger.create({
-          trigger: entranceRef.current,
-          start: 'top 92%',
-          onEnter: revealEntrance,
-          onEnterBack: revealEntrance,
-        });
-        const io1 = new IntersectionObserver(
-          (entries) => {
-            if (entries.some((e) => e.isIntersecting)) {
-              revealEntrance();
-              io1.disconnect();
-            }
-          },
-          { threshold: 0.02, rootMargin: '80px 0px' }
-        );
-        io1.observe(entranceRef.current);
-      }
+      ScrollTrigger.create({
+        trigger: el,
+        start: 'top 88%',
+        onEnter: playEntrance,
+        onEnterBack: playEntrance,
+      });
 
-      // Progressive word illumination on the editorial manifesto
-      if (manifestoWords.length && wordsWrapRef.current) {
-        gsap.to(manifestoWords, {
-          opacity: 1,
-          stagger: 0.05,
-          ease: 'none',
-          scrollTrigger: {
-            trigger: wordsWrapRef.current,
-            start: 'top 92%',
-            end: 'bottom 45%',
-            scrub: SCRUB.type,
-          },
-        });
-      }
-
-      // EXPERIENCE 2 & 3: Scroll-driven progression across the 4 Identity Chapters
-      if (storyStageRef.current) {
-        ScrollTrigger.create({
-          trigger: storyStageRef.current,
-          start: 'top 65%',
-          end: 'bottom 35%',
-          scrub: 0.5,
-          onUpdate: (self) => {
-            const p = self.progress;
-            sculptureProgressRef.current = p;
-
-            if (orbitArcRef.current) {
-              const offset = 628 * (1 - p);
-              orbitArcRef.current.style.strokeDashoffset = String(offset);
-            }
-
-            const idx = Math.min(3, Math.max(0, Math.floor(p * 4)));
-            if (idx !== activeChapterRef.current) {
-              activeChapterRef.current = idx;
-              setActiveChapter(idx);
-            }
-          },
-        });
-      }
-
-      // EXPERIENCE 4: Final Identity Statement ("I DON'T JUST WRITE CODE. I BUILD EXPERIENCES.")
-      let finaleDone = false;
-      const revealFinale = () => {
-        if (finaleDone || !finaleLines.length) return;
-        finaleDone = true;
-        gsap.to(finaleLines, {
-          yPercent: 0,
-          opacity: 1,
-          duration: 0.95,
-          stagger: 0.14,
-          ease: EASE.type,
-          clearProps: 'transform,opacity',
-        });
-      };
-
-      if (finaleLines.length && finaleRef.current) {
-        gsap.set(finaleLines, { yPercent: 105, opacity: 0.001 });
-        ScrollTrigger.create({
-          trigger: finaleRef.current,
-          start: 'top 92%',
-          onEnter: revealFinale,
-          onEnterBack: revealFinale,
-        });
-        const io2 = new IntersectionObserver(
-          (entries) => {
-            if (entries.some((e) => e.isIntersecting)) {
-              revealFinale();
-              io2.disconnect();
-            }
-          },
-          { threshold: 0.02, rootMargin: '80px 0px' }
-        );
-        io2.observe(finaleRef.current);
+      const rect = el.getBoundingClientRect();
+      if (rect.top < window.innerHeight * 0.94 && rect.bottom > 0) {
+        playEntrance();
       }
     }, sectionRef);
 
     return () => ctx.revert();
   }, []);
 
-  const currentChapter = IDENTITY_CHAPTERS[activeChapter] || IDENTITY_CHAPTERS[0];
-
-  const handleSelectChapter = (idx) => {
-    activeChapterRef.current = idx;
-    sculptureProgressRef.current = idx / 3;
-    setActiveChapter(idx);
-  };
-
   return (
     <section
       id="scene-about"
       ref={sectionRef}
-      className="about id-section section"
-      style={{ '--id-accent': currentChapter.accent }}
-      aria-label="Identity — The Human Behind The Code"
+      className="id-section section"
+      aria-label="Identity: The Human Behind The Code"
+      style={{ '--id-halo-rot': `${activeFacet.haloAngle}deg` }}
     >
-      {/* Subtle Background Orbital Telemetry Lines */}
-      <svg
-        className="id-section__bg-orbits"
-        viewBox="0 0 1440 900"
-        fill="none"
-        preserveAspectRatio="xMidYMid slice"
-        aria-hidden="true"
-      >
-        <ellipse
-          cx="720"
-          cy="450"
-          rx="620"
-          ry="210"
-          transform="rotate(-11 720 450)"
-          stroke="rgba(168, 85, 247, 0.14)"
-          strokeWidth="1.2"
-        />
-        <ellipse
-          cx="720"
-          cy="450"
-          rx="480"
-          ry="150"
-          transform="rotate(9 720 450)"
-          stroke="rgba(83, 107, 255, 0.12)"
-          strokeWidth="1"
-          strokeDasharray="6 8"
-        />
-      </svg>
+      {/* Subtle dark atmospheric gradient & fine dot/grid texture */}
+      <div className="id-bg-grid" aria-hidden="true" />
+      <div className="id-bg-atmosphere" aria-hidden="true" />
 
-      {/* =====================================================================
-          EXPERIENCE 1 — CINEMATIC ENTRANCE ("THE HUMAN BEHIND THE CODE.")
-          ===================================================================== */}
-      <div ref={entranceRef} className="id-entrance">
-        <div className="id-entrance__top mono">
-          <div className="section-index">
-            <span>01 // IDENTITY</span>
-          </div>
-          <div className="id-entrance__coords">
-            <span>{PROFILE.location.toUpperCase()}</span>
-            <span className="id-entrance__sep">·</span>
-            <span>@{PROFILE.handle}</span>
-          </div>
+      {/* Centered 16:9 / full-bleed stage container preserving exact visual composition */}
+      <div className="id-stage">
+        {/* DESKTOP LEFT ARTWORK LAYER: Extracted high-fidelity approved portrait + purple halo + silk ribbons + smoke */}
+        <div className="id-artwork-desktop">
+          <picture>
+            <source
+              srcSet="/assets/about/asrar-identity-artwork.png 1x, /assets/about/asrar-identity-artwork-2x.png 2x"
+              type="image/png"
+            />
+            <img
+              src="/assets/about/asrar-identity-artwork-2x.png"
+              alt="Asrar Mulla — cinematic monochrome and violet editorial portrait"
+              width="524"
+              height="576"
+              loading="eager"
+              decoding="async"
+              className="id-artwork-img"
+            />
+          </picture>
+
+          {/* Subtle interactive halo indicator gliding on facet selection */}
+          <svg className="id-halo-pulse-svg" viewBox="0 0 524 576" aria-hidden="true">
+            <g className={`id-halo-pulse-rotator ${interacted ? 'is-visible' : ''}`}>
+              <circle cx="285" cy="24" r="3" fill="#f3e8ff" opacity="0.88" />
+              <circle cx="285" cy="24" r="7.5" fill="none" stroke="rgba(216, 180, 254, 0.52)" strokeWidth="0.9" />
+            </g>
+          </svg>
         </div>
 
-        <h2 className="display id-entrance__headline" aria-label="The Human Behind The Code.">
-          <span className="id-entrance__row">
-            {ENTRANCE_WORDS.slice(0, 2).map((w, i) => (
-              <span key={i} className="id-word-mask">
-                <span data-id-entrance-word="" className="id-word-inner">
-                  {w}
-                </span>
-              </span>
-            ))}
-          </span>
-          <span className="id-entrance__row id-entrance__row--accent">
-            {ENTRANCE_WORDS.slice(2).map((w, i) => (
-              <span key={i} className="id-word-mask">
-                <span data-id-entrance-word="" className="id-word-inner">
-                  {w}
-                </span>
-              </span>
-            ))}
-          </span>
-        </h2>
+        {/* Sparse gently drifting luminous particles outside face area */}
+        <IdentityParticlesCanvas inView={inView} />
 
-        <div className="id-entrance__manifesto-grid">
-          <p ref={wordsWrapRef} className="id-entrance__manifesto">
-            {MANIFESTO_WORDS.map((w, i) => (
-              <span
-                key={i}
-                data-manifesto-word=""
-                className={`id-manifesto-word ${w.accent ? 'is-accent' : ''}`}
-              >
-                {w.text}
-              </span>
-            ))}
-          </p>
+        {/* BOTTOM-RIGHT PURPLE WIREFRAME LANDSCAPE EXTRACTED CLEANLY */}
+        <div className="id-terrain-wrap" aria-hidden="true">
+          <picture>
+            <source
+              srcSet="/assets/about/id-terrain.png 1x, /assets/about/id-terrain-2x.png 2x"
+              type="image/png"
+            />
+            <img
+              src="/assets/about/id-terrain-2x.png"
+              alt=""
+              width="480"
+              height="118"
+              loading="eager"
+              decoding="async"
+              className="id-terrain-img"
+            />
+          </picture>
+        </div>
 
-          <div className="id-entrance__credentials mono">
-            <div className="id-credential">
-              <span className="id-credential__label">INSTITUTION</span>
-              <span className="id-credential__val">{PROFILE.institution}</span>
-            </div>
-            <div className="id-credential">
-              <span className="id-credential__label">COMMUNITY LEADERSHIP</span>
-              <span className="id-credential__val">
-                {PROFILE.club.role} · {PROFILE.club.name}
+        {/* FAR-LEFT UNDERSTATED HUD INDEX RAIL ("IDENTITY MODULE") */}
+        <aside className="id-hud-rail mono" aria-label="Identity module index">
+          <div className="id-hud-rail__title">
+            <span>IDENTITY</span>
+            <span>MODULE</span>
+            <span className="id-hud-rail__dash" aria-hidden="true" />
+          </div>
+
+          <ul className="id-hud-rail__list">
+            {IDENTITY_FACETS.map((facet, idx) => {
+              const isActive = idx === activeIdx;
+              return (
+                <li key={facet.id}>
+                  <button
+                    type="button"
+                    className={`id-hud-rail__btn mono ${isActive ? 'is-active' : ''}`}
+                    onMouseEnter={() => selectFacet(idx, true)}
+                    onFocus={() => selectFacet(idx, true)}
+                    onClick={() => selectFacet(idx, true)}
+                  >
+                    <span>[{facet.index}] {facet.shortLabel}</span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </aside>
+
+        {/* MOBILE / TABLET DEDICATED PORTRAIT CROP (hidden on desktop) */}
+        <div className="id-artwork-mobile">
+          <picture>
+            <source
+              srcSet="/assets/about/asrar-identity-mobile.png 1x, /assets/about/asrar-identity-mobile-2x.png 2x"
+              type="image/png"
+            />
+            <img
+              src="/assets/about/asrar-identity-mobile-2x.png"
+              alt="Asrar Mulla — monochrome and violet editorial portrait"
+              width="488"
+              height="552"
+              loading="eager"
+              decoding="async"
+              className="id-artwork-mobile-img"
+            />
+          </picture>
+        </div>
+
+        {/* RIGHT PORTION: Editorial Heading + Paragraph + 2x2 Interactive Modules */}
+        <div className="id-editorial-col">
+          {/* Small top label: IDENTITY / 01 + hairline */}
+          <div className="id-editorial__eyebrow mono">
+            <span>IDENTITY / {activeFacet.index}</span>
+            <span className="id-editorial__eyebrow-line" aria-hidden="true" />
+          </div>
+
+          {/* Large Editorial Serif Headline + Exact Paragraph alongside CODE. */}
+          <div className="id-editorial__hero">
+            <h2 className="id-heading" aria-label="The Human Behind The Code.">
+              <span className="id-heading__line-mask">
+                <span className="id-heading__line-inner">THE HUMAN</span>
               </span>
+              <span className="id-heading__line-mask">
+                <span className="id-heading__line-inner">BEHIND THE</span>
+              </span>
+            </h2>
+
+            <div className="id-heading__code-row">
+              <div className="id-heading__code-wrap" aria-hidden="true">
+                <span className="id-heading__line-mask">
+                  <span className="id-heading__line-inner id-heading__code">CODE.</span>
+                </span>
+              </div>
+
+              <p className="id-editorial__intro">
+                An AI &amp; Data Science student, developer and creative engineer who loves turning
+                ideas into real, impactful products.
+              </p>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* =====================================================================
-          EXPERIENCE 2 & 3 — INTERACTIVE 3D IDENTITY SCULPTURE & SCROLL STORY
-          ===================================================================== */}
-      <div ref={storyStageRef} className="id-story">
-        <div ref={storyPinRef} className="id-story__sticky">
-          {/* Left Column: 4 Identity Chapter Index & Progress */}
-          <nav className="id-story__nav" aria-label="Four Facets of Asrar's Identity">
-            <div className="mono id-story__nav-label">IDENTITY SPECTRUM // 01 — 04</div>
-            {IDENTITY_CHAPTERS.map((chap, idx) => {
-              const isActive = idx === activeChapter;
+          {/* Four Identity Modules in 2x2 Arrangement matching Reference */}
+          <div className="id-facets-grid" role="tablist" aria-label="Asrar Mulla identity modules">
+            {IDENTITY_FACETS.map((facet, idx) => {
+              const isSelected = idx === activeIdx;
               return (
                 <button
-                  key={chap.index}
+                  key={facet.id}
                   type="button"
-                  className={`id-chapter-tab ${isActive ? 'is-active' : ''}`}
-                  style={{ '--chap-color': chap.accent }}
-                  onClick={() => handleSelectChapter(idx)}
+                  role="tab"
+                  aria-selected={isSelected}
+                  className={`id-facet ${isSelected ? 'is-active' : ''}`}
+                  onMouseEnter={() => selectFacet(idx, true)}
+                  onFocus={() => selectFacet(idx, true)}
+                  onClick={() => selectFacet(idx, true)}
+                  data-cursor="MODULE"
                 >
-                  <span className="id-chapter-tab__idx mono">{chap.index}</span>
-                  <span className="id-chapter-tab__text">
-                    <span className="id-chapter-tab__title">{chap.title}</span>
-                    <span className="id-chapter-tab__kicker mono">{chap.kicker}</span>
-                  </span>
+                  <span className="id-facet__corner id-facet__corner--tl" aria-hidden="true" />
+                  <span className="id-facet__corner id-facet__corner--tr" aria-hidden="true" />
+                  <span className="id-facet__corner id-facet__corner--bl" aria-hidden="true" />
+                  <span className="id-facet__corner id-facet__corner--br" aria-hidden="true" />
+
+                  <div className="id-facet__icon">
+                    <FacetIcon id={facet.id} />
+                  </div>
+
+                  <div className="id-facet__body">
+                    <div className="id-facet__title mono">{facet.title}</div>
+                    <div className="id-facet__tags mono">{facet.tags}</div>
+                  </div>
                 </button>
               );
             })}
-          </nav>
-
-          {/* Center Column: Interactive 3D Identity Sculpture & SVG Progress Orbit */}
-          <div className="id-story__centerpiece">
-            <svg className="id-story__orbit-svg" viewBox="0 0 240 240" aria-hidden="true">
-              <circle
-                cx="120"
-                cy="120"
-                r="100"
-                fill="none"
-                stroke="rgba(245, 242, 235, 0.08)"
-                strokeWidth="1"
-              />
-              <circle
-                ref={orbitArcRef}
-                cx="120"
-                cy="120"
-                r="100"
-                fill="none"
-                stroke={currentChapter.accent}
-                strokeWidth="1.75"
-                strokeDasharray="628"
-                strokeDashoffset="471"
-                strokeLinecap="round"
-                transform="rotate(-90 120 120)"
-              />
-            </svg>
-
-            <IdentitySculpture3D
-              progressRef={sculptureProgressRef}
-              activeChapter={activeChapter}
-            />
-
-            <div className="id-story__core-badge mono" aria-hidden="true">
-              <span>FACET {currentChapter.index} / 04</span>
-              <span>·</span>
-              <span>{currentChapter.title}</span>
-            </div>
           </div>
 
-          {/* Right Column: Synchronized Active Chapter Dossier Panel */}
-          <article
-            key={currentChapter.index}
-            className="id-story__dossier"
-            aria-live="polite"
-          >
-            <div className="id-story__dossier-head mono">
-              <span className="id-story__dossier-idx" style={{ color: currentChapter.accent }}>
-                {currentChapter.index} — {currentChapter.kicker}
-              </span>
-            </div>
-
-            <h3 className="display id-story__dossier-title">{currentChapter.title}</h3>
-
-            <p className="id-story__dossier-body">{currentChapter.narrative}</p>
-
-            <div className="id-story__metrics">
-              {currentChapter.metrics.map((m) => (
-                <div key={m.label} className="id-story__metric">
-                  <span className="mono id-story__metric-label">{m.label}</span>
-                  <span className="id-story__metric-val">{m.value}</span>
-                </div>
-              ))}
-            </div>
-
-            <div className="id-story__tags">
-              {currentChapter.tags.map((tag) => (
-                <span key={tag} className="id-story__tag mono">
-                  {tag}
-                </span>
-              ))}
-            </div>
-          </article>
+          {/* Subtle verified detail caption revealed smoothly upon facet interaction */}
+          <p className={`id-facet-detail mono ${interacted ? 'is-visible' : ''}`} aria-live="polite">
+            <span className="id-facet-detail__pip" aria-hidden="true" />
+            <span>{activeFacet.detail}</span>
+          </p>
         </div>
-      </div>
-
-      {/* =====================================================================
-          EXPERIENCE 4 — THE FINAL IDENTITY REVEAL
-          ("I DON'T JUST WRITE CODE. I BUILD EXPERIENCES.")
-          ===================================================================== */}
-      <div ref={finaleRef} className="id-finale">
-        <div className="id-finale__orbit-line" aria-hidden="true" />
-        <div className="mono id-finale__kicker">PHILOSOPHY // ASRAR MULLA</div>
-
-        <h3
-          className="display id-finale__statement"
-          aria-label="I don't just write code. I build experiences."
-        >
-          <span className="id-finale__mask">
-            <span data-id-finale-line="" className="id-finale__line">
-              I DON&apos;T JUST WRITE CODE.
-            </span>
-          </span>
-          <span className="id-finale__mask">
-            <span
-              data-id-finale-line=""
-              className="id-finale__line id-finale__line--metallic"
-            >
-              I BUILD EXPERIENCES.
-            </span>
-          </span>
-        </h3>
       </div>
     </section>
   );

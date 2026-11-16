@@ -7,7 +7,6 @@ import { HeroSection } from '../sections/HeroSection';
 import { AboutSection } from '../sections/AboutSection';
 import { ProjectRingSection } from '../sections/ProjectRingSection';
 import { TechUniverseSection } from '../sections/TechUniverseSection';
-import { DsaSection } from '../sections/DsaSection';
 import { ExperimentLabSection } from '../sections/ExperimentLabSection';
 import { DirectionSection } from '../sections/DirectionSection';
 import { ContactSection } from '../sections/ContactSection';
@@ -24,7 +23,6 @@ export function Home({ ready, onOpenCase }) {
       ['#scene-about', 'about', 'top 90%', 'bottom 15%'],
       ['#scene-work-intro', 'work', 'top 85%', 'bottom 15%'],
       ['#scene-toolbox', 'universe', 'top 85%', 'bottom 15%'],
-      ['#scene-dsa', 'dsa', 'top 85%', 'bottom 15%'],
       ['#scene-lab', 'lab', 'top 82%', 'bottom 20%'],
       ['#scene-direction', 'direction', 'top 85%', 'bottom 15%'],
     ];
@@ -72,7 +70,6 @@ export function Home({ ready, onOpenCase }) {
       <AboutSection />
       <ProjectRingSection onOpenCase={onOpenCase} />
       <TechUniverseSection onOpenCase={onOpenCase} />
-      <DsaSection />
       <ExperimentLabSection onOpenCase={onOpenCase} />
       <DirectionSection />
       <ContactSection />

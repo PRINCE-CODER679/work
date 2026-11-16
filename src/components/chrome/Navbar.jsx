@@ -5,9 +5,10 @@ import './chrome.css';
 /**
  * Fixed minimalist editorial HUD header.
  */
-export function Navbar({ onOpenMenu, onOpenPalette }) {
+export function Navbar({ activeScene, onOpenMenu, onOpenPalette }) {
   const location = useLocation();
   const navigate = useNavigate();
+  const isVioletBar = activeScene === 'about' || activeScene === 'hero';
 
   const handleBrandClick = (e) => {
     if (location.pathname === '/') {
@@ -19,7 +20,7 @@ export function Navbar({ onOpenMenu, onOpenPalette }) {
   };
 
   return (
-    <header className="nav" aria-label="Primary navigation">
+    <header className={`nav ${isVioletBar ? 'nav--violet' : ''}`} aria-label="Primary navigation">
       <Link
         to="/"
         onClick={handleBrandClick}

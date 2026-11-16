@@ -937,63 +937,7 @@
   .toolbox__node { position: static; transform: none !important; }
 }
 
-/* ---------- SCENE 09: DSA / PROBLEM SOLVING ---------- */
-.dsa {
-  position: relative;
-  padding: clamp(5rem, 10vw, 8.5rem) var(--gutter);
-  background: #0a0a0c;
-  border-top: 1px solid var(--hair);
-  z-index: 4;
-}
-.dsa__layout {
-  display: grid;
-  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
-  gap: clamp(1.5rem, 3.5vw, 3rem);
-  margin-top: 2.5rem;
-}
-.dsa__tabs {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  min-width: 0;
-  max-width: 100%;
-}
-.dsa__tab {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.35rem 0.75rem;
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  padding: 0.9rem 1.1rem;
-  border: 1px solid var(--hair);
-  background: #0f0f13;
-  text-align: left;
-  transition: border-color 0.25s, background 0.25s;
-}
-.dsa__tab > * {
-  min-width: 0;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-}
-.dsa__tab.is-active,
-.dsa__tab:hover {
-  border-color: var(--signal);
-  background: rgba(255, 89, 36, 0.1);
-}
-.dsa__stage {
-  min-width: 0;
-  max-width: 100%;
-  border: 1px solid var(--hair);
-  background: #0d0d11;
-  padding: clamp(1rem, 2.5vw, 1.6rem);
-  display: flex;
-  flex-direction: column;
-  gap: 1.2rem;
-}
-.dsa__ctrl-btn,
+/* ---------- SHARED LAB CONTROLS ---------- */
 .lab__btn {
   padding: 0.45rem 0.85rem;
   border: 1px solid var(--hair);
@@ -1006,58 +950,11 @@
   cursor: pointer;
   transition: background 0.22s, color 0.22s, border-color 0.22s;
 }
-.dsa__ctrl-btn:hover,
-.dsa__ctrl-btn.is-on,
 .lab__btn:hover,
 .lab__btn.is-on {
   background: var(--paper);
   color: var(--ink);
   border-color: var(--paper);
-}
-.dsa__viz {
-  min-height: 210px;
-  border: 1px solid var(--hair);
-  background: #08080a;
-  padding: 1.2rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 0.55rem;
-}
-.dsa__cell {
-  min-width: 44px;
-  height: 44px;
-  padding: 0 0.65rem;
-  border: 1px solid var(--hair);
-  display: grid;
-  place-items: center;
-  font-family: var(--f-mono);
-  font-size: 0.82rem;
-  transition: background 0.3s, border-color 0.3s, transform 0.3s;
-}
-.dsa__cell.is-hi {
-  border-color: var(--cobalt);
-  background: rgba(83, 107, 255, 0.22);
-}
-.dsa__cell.is-found {
-  border-color: var(--signal);
-  background: var(--signal);
-  color: var(--ink);
-  transform: scale(1.08);
-}
-.dsa__code {
-  background: #060608;
-  border: 1px solid var(--hair);
-  padding: 1rem;
-  font-family: var(--f-mono);
-  font-size: 0.78rem;
-  line-height: 1.6;
-  overflow-x: auto;
-  color: #dcd9d0;
-}
-@media (max-width: 960px) {
-  .dsa__layout { grid-template-columns: 1fr; }
 }
 
 /* ---------- SCENE 10: ENTER ASRAR'S DIGITAL WORLD (FULL-BLEED) ---------- */

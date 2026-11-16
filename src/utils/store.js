@@ -26,7 +26,6 @@ export const scenes = {
   medikiosk: { progress: 0, visible: false },
   devtalks: { progress: 0, visible: false },
   universe: { progress: 0, visible: false },
-  dsa: { progress: 0, visible: false },
   lab: { progress: 0, visible: false },
   direction: { progress: 0, visible: false },
   contact: { progress: 0, visible: false },

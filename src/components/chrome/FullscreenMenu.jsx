@@ -7,10 +7,9 @@ import './chrome.css';
 
 const MENU_ITEMS = [
   { label: 'INDEX', target: '#scene-hero', desc: 'Volumetric portrait sculpture, orbital lattice & exhibition entrance.', accent: '#536BFF', thumb: null },
-  { label: 'ABOUT', target: '#scene-about', desc: 'Curious by nature, builder by choice — Pune, IN.', accent: '#FF5924', thumb: null },
+  { label: 'IDENTITY', target: '#scene-about', desc: 'The human behind the code — AI & Data Science, Software & Creative Engineering.', accent: '#A855F7', thumb: null },
   { label: 'WORK', target: '#scene-work-intro', desc: 'SpendSense AI, SignSense AI, MediKiosk & DEVTALKS.', accent: '#536BFF', thumb: PROJECTS[1].screens[0].src },
   { label: 'TOOLBOX', target: '#scene-toolbox', desc: 'Interactive spatial constellation of verified engineering tools.', accent: '#536BFF', thumb: null },
-  { label: 'DSA', target: '#scene-dsa', desc: 'Live algorithmic visualizers from verified C/Python practicals.', accent: '#2FD3C4', thumb: null },
   { label: 'DIGITAL WORLD', target: '#scene-lab', desc: "Enter Asrar's Digital World — interactive WebGL exploration.", accent: '#FF5924', thumb: null },
   { label: 'CONTACT', target: '#scene-contact', desc: 'Have an impossible idea? Let’s build it.', accent: '#FF5924', thumb: null },
 ];

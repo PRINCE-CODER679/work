@@ -3,10 +3,9 @@ import './chrome.css';
 
 const CHAPTERS = [
   { id: 'scene-hero', label: 'INDEX', match: 'hero' },
-  { id: 'scene-about', label: 'ABOUT', match: 'about' },
+  { id: 'scene-about', label: 'IDENTITY', match: 'about' },
   { id: 'scene-work-intro', label: 'WORK', match: 'work' },
   { id: 'scene-toolbox', label: 'TOOLBOX', match: 'toolbox' },
-  { id: 'scene-dsa', label: 'DSA', match: 'dsa' },
   { id: 'scene-lab', label: 'DIGITAL WORLD', match: 'lab' },
   { id: 'scene-contact', label: 'CONTACT', match: 'contact' },
 ];
@@ -20,7 +19,7 @@ export function ChapterRail({ activeScene }) {
       {CHAPTERS.map((ch) => {
         const active =
           activeScene === ch.match ||
-          (ch.match === 'lab' && (activeScene === 'dsa' || activeScene === 'direction'));
+          (ch.match === 'lab' && activeScene === 'direction');
         return (
           <button
             key={ch.id}

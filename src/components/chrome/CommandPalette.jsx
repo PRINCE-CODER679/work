@@ -22,7 +22,6 @@ export function CommandPalette({ open, onClose, blueprint, onToggleBlueprint, wi
     { id: 'medikiosk', label: 'medikiosk', desc: 'Open MediKiosk Case Study', tag: 'PROJECT', run: () => nav('/work/medikiosk') },
     { id: 'devtalks', label: 'devtalks', desc: "Open DEVTALKS '26 Case Study", tag: 'PROJECT', run: () => nav('/work/devtalks') },
     { id: 'stack', label: 'toolbox', desc: 'Jump to Systems Graph & Toolbox', tag: 'SYSTEMS', run: () => go('#scene-toolbox') },
-    { id: 'dsa', label: 'dsa', desc: 'Jump to Algorithm Studio', tag: 'DSA', run: () => go('#scene-dsa') },
     { id: 'lab', label: 'lab', desc: "Jump to Enter Asrar's Digital World", tag: 'WORLD', run: () => go('#scene-lab') },
     { id: 'contact', label: 'contact', desc: 'Jump to Closing Loop & Contact', tag: 'CONTACT', run: () => go('#scene-contact') },
     { id: 'grid', label: 'blueprint', desc: `Toggle architectural coordinate grid (${blueprint ? 'ON' : 'OFF'})`, tag: 'MODE', run: () => { onClose(); onToggleBlueprint(); } },

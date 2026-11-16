@@ -208,17 +208,45 @@
   justify-self: start;
 }
 .nav__mark {
-  width: 10px;
-  height: 10px;
+  width: 14px;
+  height: 14px;
   border: 1.5px solid currentColor;
+  border-radius: 3px;
   position: relative;
   display: inline-block;
+  transition: border-color 0.35s ease, box-shadow 0.35s ease, background 0.35s ease;
 }
 .nav__mark::after {
   content: '';
   position: absolute;
-  inset: 2px;
+  inset: 3px;
+  border-radius: 1px;
   background: currentColor;
+  transition: background 0.35s ease;
+}
+.nav--violet {
+  mix-blend-mode: normal;
+  color: #f5f3ff;
+}
+.nav--violet .nav__mark {
+  border-color: rgba(192, 132, 252, 0.88);
+  background: rgba(88, 28, 135, 0.38);
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.48);
+}
+.nav--violet .nav__mark::after {
+  background: linear-gradient(135deg, #e9d5ff 0%, #a855f7 100%);
+}
+.nav--violet .nav__pill,
+.nav--violet .nav__menu-btn {
+  border-color: rgba(233, 213, 255, 0.32);
+  background: rgba(10, 7, 18, 0.42);
+  backdrop-filter: blur(8px);
+}
+.nav--violet .nav__pill:hover,
+.nav--violet .nav__menu-btn:hover {
+  background: #f5f3ff;
+  color: #08060d;
+  border-color: #f5f3ff;
 }
 .nav__status {
   justify-self: center;

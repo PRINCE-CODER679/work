@@ -19,7 +19,6 @@ const SCENE_READOUTS = [
   { id: 'scene-about', label: 'about' },
   { id: 'scene-work-intro', label: 'work' },
   { id: 'scene-toolbox', label: 'toolbox' },
-  { id: 'scene-dsa', label: 'dsa' },
   { id: 'scene-lab', label: 'lab' },
   { id: 'scene-direction', label: 'direction' },
   { id: 'scene-contact', label: 'contact' },
