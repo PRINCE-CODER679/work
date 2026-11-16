@@ -46,30 +46,30 @@ export function AsrarWorld({ wireframe = false, tier = 'high' }) {
   const camTarget = useRef(new THREE.Vector3(0, 0.25, 0));
   const fboRef = useRef(null);
 
-  // Load high-resolution 3D portrait asset (`public/assets/hero/asrar-3d.png`) into WebGL with maximum anisotropy
+  // Load high-resolution 3D portrait asset (`public/assets/hero/asrar-3d.png`) into WebGL with crisp linear filtering
   const portraitTex = useMemo(() => {
     const tex = new THREE.TextureLoader().load('/assets/hero/asrar-3d.png', (loaded) => {
       loaded.colorSpace = THREE.SRGBColorSpace;
       const maxAniso = gl?.capabilities?.getMaxAnisotropy?.() || 16;
       loaded.anisotropy = Math.min(16, maxAniso);
-      loaded.minFilter = THREE.LinearMipmapLinearFilter;
+      loaded.minFilter = THREE.LinearFilter;
       loaded.magFilter = THREE.LinearFilter;
-      loaded.generateMipmaps = true;
+      loaded.generateMipmaps = false;
       loaded.needsUpdate = true;
       if (typeof window !== 'undefined' && window.__asrar) {
         window.__asrar.heroTexture = {
           loaded: true,
-          width: loaded.image?.naturalWidth || loaded.image?.width || 768,
-          height: loaded.image?.naturalHeight || loaded.image?.height || 1024,
+          width: loaded.image?.naturalWidth || loaded.image?.width || 836,
+          height: loaded.image?.naturalHeight || loaded.image?.height || 1064,
         };
       }
     });
     tex.colorSpace = THREE.SRGBColorSpace;
     const maxAniso = gl?.capabilities?.getMaxAnisotropy?.() || 16;
     tex.anisotropy = Math.min(16, maxAniso);
-    tex.minFilter = THREE.LinearMipmapLinearFilter;
+    tex.minFilter = THREE.LinearFilter;
     tex.magFilter = THREE.LinearFilter;
-    tex.generateMipmaps = true;
+    tex.generateMipmaps = false;
     return tex;
   }, [gl]);
 
@@ -164,7 +164,7 @@ export function AsrarWorld({ wireframe = false, tier = 'high' }) {
   }, []);
 
   useEffect(() => {
-    const dpr = Math.min(window.devicePixelRatio || 1, tier === 'low' ? 1 : 1.75);
+    const dpr = Math.min(window.devicePixelRatio || 1, tier === 'low' ? 1.25 : 1.5);
     const w = Math.max(2, Math.round(size.width * dpr));
     const h = Math.max(2, Math.round(size.height * dpr));
     const rt = new THREE.WebGLRenderTarget(w, h, {
@@ -266,13 +266,13 @@ export function AsrarWorld({ wireframe = false, tier = 'high' }) {
     const contactActive = Math.min(1, Math.max(0, cp * 1.45));
     const contactMix = smooth(contactActive);
 
-    // Portrait prominence: luminous Hero (hp < 0.9) and calm Contact Halo Bust Finale (contactActive > 0.02)
+    // Hero section uses the native high-DPI 7-layer HeroCenterpiece (<picture> + metallic SVG ASRAR + purple orbital ring);
+    // WebGL portrait monolith activates for the Contact Halo Bust Finale and Wireframe mode.
     const portraitHeroVis = 1 - smooth(Math.min(1, Math.max(0, (hp - 0.55) / 0.42)));
-    const showPortrait = wireframe || portraitHeroVis > 0.02 || contactActive > 0.02;
+    const showPortrait = Boolean(wireframe || contactActive > 0.02);
 
     if (portraitRef.current) {
       portraitRef.current.visible = showPortrait;
-      // Position vertical center so head has generous headroom below nav, and mobile CTA dock leaves full figure clear
       const pyOffset = lerp(isMobile ? 0.16 : -0.06, isMobile ? 0.42 : 0.45, contactActive);
       const pzOffset = lerp(0.12, -0.75, contactActive);
       portraitRef.current.position.set(
@@ -286,18 +286,8 @@ export function AsrarWorld({ wireframe = false, tier = 'high' }) {
       portraitRef.current.scale.setScalar(pScale * lerp(1.0, 0.94, contactActive));
     }
 
-    // Spatial "ASRAR" typography behind the portrait figure with true depth parallax
     if (nameBackdropRef.current && nameMatRef.current) {
-      const nameFade = (1 - smooth(Math.min(1, Math.max(0, hp / 0.52)))) * (1 - contactMix) * (1 - labMix);
-      nameBackdropRef.current.visible = !wireframe && nameFade > 0.01;
-      nameBackdropRef.current.position.set(
-        -smoothPtr.current.x * 0.18,
-        lerp(isMobile ? 0.42 : 0.56, 0.95, hp) - smoothPtr.current.y * 0.06,
-        -1.05
-      );
-      const nameScale = isMobile ? 0.42 : 1.0;
-      nameBackdropRef.current.scale.setScalar(nameScale * (1 + hp * 0.12));
-      nameMatRef.current.opacity = 0.19 * Math.min(1, intro * 1.15) * nameFade;
+      nameBackdropRef.current.visible = false;
     }
 
     // Shader uniforms
@@ -358,13 +348,8 @@ export function AsrarWorld({ wireframe = false, tier = 'high' }) {
     // Foreground architectural framing rails slide open on Hero scroll dive
     const railSpread = smooth(Math.min(1, Math.max(0, (hp - 0.1) / 0.55)));
     if (fgLeftRef.current && fgRightRef.current) {
-      const baseX = isMobile ? 2.5 : 3.65;
-      fgLeftRef.current.position.x = -baseX - railSpread * 3.1;
-      fgLeftRef.current.position.z = 2.4 + railSpread * 2.2;
-      fgRightRef.current.position.x = baseX + railSpread * 3.1;
-      fgRightRef.current.position.z = 2.4 + railSpread * 2.2;
-      fgLeftRef.current.visible = contactActive < 0.35 && portraitHeroVis > 0.05;
-      fgRightRef.current.visible = contactActive < 0.35 && portraitHeroVis > 0.05;
+      fgLeftRef.current.visible = Boolean(wireframe);
+      fgRightRef.current.visible = Boolean(wireframe);
     }
 
     if (waterRef.current) {

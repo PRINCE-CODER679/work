@@ -3,6 +3,7 @@ import { gsap, EASE, ScrollTrigger, prefersReducedMotion } from '../animations/m
 import { scenes } from '../utils/store';
 import { SplitHeadline } from '../components/ui/SplitHeadline';
 import { Magnetic } from '../components/ui/Magnetic';
+import { HeroCenterpiece } from '../components/hero/HeroCenterpiece';
 import { scrollToTarget } from '../hooks/useSmoothScroll';
 import './hero.css';
 
@@ -89,15 +90,12 @@ export function HeroSection({ ready }) {
       aria-label="Scene 01: Asrar Mulla Hero"
     >
       <div className="hero-film__pin">
-        {/* Deep background spatial depth wordmark behind 3D figure */}
-        <div ref={ghostRef} className="hero-film__ghost" aria-hidden="true">
-          ASRAR
-        </div>
+        {/* 7-Layer Art-Directed Centerpiece: Metallic ASRAR Wordmark + Glowing Purple Orbit + High-DPI Portrait */}
+        <HeroCenterpiece />
 
         {/* ===================================================================
-            EDITORIAL DUAL-FLANK ARCHITECTURE
+            LAYER 7 — EDITORIAL DUAL-FLANK INTERFACE ELEMENTS
             Strictly placed in the negative space on left and right margins.
-            The central 3D portrait corridor is completely open and unobstructed.
             =================================================================== */}
         <div className="hero-film__stage-grid">
           {/* LEFT FLANK — Identity, Disciplines & Display Headline */}
@@ -154,15 +152,6 @@ export function HeroSection({ ready }) {
             </div>
           </div>
         </div>
-
-        {/* WebGL Fallback Identity Portrait Frame (only visible when WebGL disabled) */}
-        <img
-          src="/assets/hero/asrar-3d.png"
-          alt="Asrar Mulla 3D portrait"
-          className="hero-film__fallback-img"
-          width="768"
-          height="1024"
-        />
       </div>
     </section>
   );

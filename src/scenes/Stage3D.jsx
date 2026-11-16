@@ -27,7 +27,7 @@ export function Stage3D({ wireframe = false }) {
     return <div className="webgl-fallback" aria-hidden="true" />;
   }
 
-  const maxDpr = app.tier === 'low' ? 1 : app.tier === 'mid' ? 1.45 : 1.75;
+  const maxDpr = app.tier === 'low' ? 1.25 : app.tier === 'mid' ? 1.5 : 1.65;
 
   return (
     <div
@@ -44,7 +44,7 @@ export function Stage3D({ wireframe = false }) {
         dpr={[1, maxDpr]}
         camera={{ fov: 44, position: [0, 0.38, 5.65], near: 0.1, far: 65 }}
         gl={{
-          antialias: app.tier !== 'low',
+          antialias: true,
           alpha: false,
           powerPreference: 'high-performance',
         }}

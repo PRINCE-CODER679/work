@@ -1,7 +1,5 @@
 /* ==========================================================================
-   SCENE 01 — DIGITAL FILM HERO: EDITORIAL DUAL-FLANK ARCHITECTURE
-   Strictly positions typography into left and right negative space margins,
-   keeping the central 3D portrait corridor 100% clean and unobstructed.
+   SCENE 01 — DIGITAL FILM HERO: 7-LAYER ART-DIRECTED CENTERPIECE & DUAL-FLANK UI
    ========================================================================== */
 
 .hero-film {
@@ -15,12 +13,13 @@
   position: sticky;
   top: 0;
   height: 100svh;
-  min-height: 620px;
+  min-height: 600px;
   padding: calc(var(--nav-h) + 1.2rem) var(--gutter) clamp(1.2rem, 2.6vw, 2.2rem);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   pointer-events: none;
+  overflow: hidden;
 }
 
 .hero-film__pin button,
@@ -28,34 +27,172 @@
   pointer-events: auto;
 }
 
-/* Deep background architectural spatial wordmark fallback (3D WebGL wordmark renders natively behind the figure) */
-.hero-film__ghost {
-  display: none;
+/* ==========================================================================
+   7-LAYER HERO CENTERPIECE
+   1. Dark background & subtle perspective grid + purple floor halo
+   2. Background stars & cosmic secondary arc
+   3. Metallic silver-purple "ASRAR" wordmark (SVG)
+   4. Rear orbital glow
+   5. Full-body high-DPI portrait (<picture>)
+   6. Front orbital light accents & right starburst flare (masked from face)
+   ========================================================================== */
+.hero-centerpiece {
+  --portrait-h: min(77svh, 52vw);
+  --stage-shift-y: 2.2svh;
   position: absolute;
-  left: 50%;
-  top: 40%;
-  transform: translate(-50%, -50%);
-  font-family: var(--f-display);
-  font-weight: 800;
-  font-size: clamp(4.8rem, 18vw, 20rem);
-  line-height: 0.8;
-  letter-spacing: -0.05em;
-  color: rgba(245, 242, 235, 0.16);
-  white-space: nowrap;
-  user-select: none;
-  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
+  will-change: opacity;
 }
 
-body.no-webgl .hero-film__ghost {
+/* LAYER 1 & 2: Subtle dark cosmic grid & star particles */
+.hero-centerpiece__cosmic-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    radial-gradient(ellipse 46% 36% at 50% 45%, rgba(109, 40, 217, 0.14) 0%, rgba(15, 10, 28, 0.04) 62%, transparent 100%),
+    linear-gradient(to right, rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
+  background-size: 100% 100%, 72px 72px, 72px 72px;
+  background-position: center center;
+}
+
+.hero-centerpiece__star {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: rgba(233, 213, 255, 0.72);
+  box-shadow: 0 0 6px rgba(192, 132, 252, 0.8);
+}
+
+.hero-centerpiece__star--1 { top: 18%; left: 24%; opacity: 0.55; }
+.hero-centerpiece__star--2 { top: 26%; left: 74%; opacity: 0.7; }
+.hero-centerpiece__star--3 { top: 14%; left: 62%; opacity: 0.45; }
+.hero-centerpiece__star--4 { top: 62%; left: 21%; opacity: 0.5; }
+.hero-centerpiece__star--5 { top: 58%; left: 79%; opacity: 0.6; }
+.hero-centerpiece__star--6 { top: 34%; left: 14%; opacity: 0.4; }
+
+/* Luminous purple elliptical floor halo ring beneath Asrar's shoes */
+.hero-centerpiece__floor-halo {
+  position: absolute;
+  left: 50%;
+  top: calc(50% + var(--stage-shift-y) + var(--portrait-h) * 0.388);
+  width: calc(var(--portrait-h) * 0.72);
+  height: calc(var(--portrait-h) * 0.155);
+  transform: translate3d(-50%, -50%, 0);
+  z-index: 2;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.hero-centerpiece__floor-ring-outer {
+  position: absolute;
+  inset: -45% -35%;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(109, 40, 217, 0.08) 0%,
+    rgba(124, 58, 237, 0.28) 42%,
+    rgba(91, 33, 182, 0.14) 62%,
+    transparent 78%
+  );
+}
+
+.hero-centerpiece__floor-ring-core {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(8, 8, 12, 0.95) 0%,
+    rgba(10, 8, 18, 0.9) 34%,
+    rgba(139, 92, 246, 0.76) 51%,
+    rgba(168, 85, 247, 0.62) 56%,
+    rgba(109, 40, 217, 0.24) 67%,
+    transparent 79%
+  );
+  filter: blur(3px);
+}
+
+/* LAYER 3 & 4: Metallic ASRAR Wordmark & Rear Orbit */
+.hero-centerpiece__wordmark-layer,
+.hero-centerpiece__front-accents-layer {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.hero-centerpiece__wordmark-layer {
+  z-index: 3;
+}
+
+.hero-centerpiece__front-accents-layer {
+  z-index: 5;
+}
+
+.hero-centerpiece__svg {
+  width: min(82vw, calc(var(--portrait-h) * 1.96));
+  max-width: 94vw;
+  height: auto;
+  transform: translateY(calc(var(--stage-shift-y) - var(--portrait-h) * 0.088));
+  overflow: visible;
+  user-select: none;
+}
+
+.hero-centerpiece__svg--back {
+  filter: drop-shadow(0 12px 28px rgba(8, 4, 20, 0.85)) drop-shadow(0 0 22px rgba(147, 51, 234, 0.36));
+}
+
+/* On desktop, the widened center R stands naturally outside both sides of the blazer with zero overlay lines */
+.hero-centerpiece__r-bridge {
+  opacity: 0;
+}
+
+/* LAYER 5: Full-Body High-Resolution Portrait (<picture>) */
+.hero-centerpiece__portrait-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.hero-centerpiece__picture {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateY(var(--stage-shift-y));
+}
+
+.hero-centerpiece__portrait-img {
+  height: var(--portrait-h);
+  width: auto;
+  aspect-ratio: 836 / 1064;
+  object-fit: contain;
+  object-position: center center;
   display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+  filter: drop-shadow(0 18px 34px rgba(0, 0, 0, 0.78));
 }
 
 /* ==========================================================================
-   DUAL-FLANK STAGE GRID
+   LAYER 7 — DUAL-FLANK STAGE GRID (INTERFACE ELEMENTS)
    ========================================================================== */
 .hero-film__stage-grid {
   position: relative;
-  z-index: 3;
+  z-index: 6;
   display: grid;
   grid-template-columns: minmax(280px, 34vw) 1fr minmax(260px, 30vw);
   grid-template-rows: 1fr;
@@ -163,35 +300,21 @@ body.no-webgl .hero-film__ghost {
 }
 
 /* ==========================================================================
-   FALLBACK STATIC IMAGE (Only when WebGL disabled)
+   RESPONSIVE BREAKPOINTS — TABLET & MOBILE ART DIRECTION
    ========================================================================== */
-.hero-film__fallback-img {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-  pointer-events: none;
-}
+@media (max-width: 1180px) {
+  .hero-centerpiece {
+    --portrait-h: min(73svh, 58vw);
+    --stage-shift-y: 1.5svh;
+  }
 
-body.no-webgl .hero-film__fallback-img {
-  position: absolute;
-  left: 50%;
-  top: 45%;
-  transform: translate(-50%, -50%);
-  width: min(340px, 60vw);
-  height: min(480px, 58svh);
-  object-fit: contain;
-  opacity: 0.88;
-  filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.8));
-  z-index: 1;
-}
+  .hero-centerpiece__svg {
+    width: min(92vw, calc(var(--portrait-h) * 2.08));
+    max-width: 95vw;
+  }
 
-/* ==========================================================================
-   RESPONSIVE BREAKPOINTS
-   ========================================================================== */
-@media (max-width: 1024px) {
   .hero-film__stage-grid {
-    grid-template-columns: minmax(240px, 38vw) 1fr minmax(220px, 34vw);
+    grid-template-columns: minmax(230px, 36vw) 1fr minmax(210px, 32vw);
   }
 
   .hero-film__headline {
@@ -199,11 +322,54 @@ body.no-webgl .hero-film__fallback-img {
   }
 }
 
+/* Portrait Tablet (e.g. 768 x 1024) */
+@media (max-width: 900px) and (min-width: 769px) {
+  .hero-centerpiece {
+    --portrait-h: min(64svh, 70vw);
+    --stage-shift-y: -1svh;
+  }
+
+  .hero-centerpiece__svg {
+    width: 94vw;
+    transform: translateY(calc(var(--stage-shift-y) - var(--portrait-h) * 0.11));
+  }
+}
+
+/* Mobile Art-Directed Composition (<= 768px: 430x932, 390x844, 360x800) */
 @media (max-width: 768px) {
   .hero-film__pin {
     min-height: 560px;
     padding-top: calc(var(--nav-h) + 0.35rem);
-    padding-bottom: 1.15rem;
+    padding-bottom: 1.1rem;
+  }
+
+  .hero-centerpiece {
+    /* Portrait sized so 2x Retina displays render inside native 1064px source height with zero upscaling blur,
+       and proportioned so all 5 letters of ASRAR (including the center R) remain visible around the silhouette */
+    --portrait-h: clamp(315px, 49.5svh, 435px);
+    --stage-shift-y: -4.2svh;
+  }
+
+  /* Position the wordmark & orbit across the upper-chest/shoulder zone on mobile so all 5 letters (A S R A R) frame the shoulders cleanly */
+  .hero-centerpiece__svg {
+    width: 98vw;
+    max-width: 98vw;
+    transform: translateY(calc(var(--stage-shift-y) - var(--portrait-h) * 0.165));
+  }
+
+  .hero-centerpiece__r-bridge {
+    opacity: 1;
+  }
+
+  .hero-centerpiece__r-bridge path {
+    stroke-opacity: 0.38;
+    stroke-width: 1.5;
+  }
+
+  .hero-centerpiece__floor-halo {
+    top: calc(50% + var(--stage-shift-y) + var(--portrait-h) * 0.39);
+    width: min(74vw, calc(var(--portrait-h) * 0.68));
+    height: calc(var(--portrait-h) * 0.14);
   }
 
   .hero-film__stage-grid {
@@ -211,7 +377,7 @@ body.no-webgl .hero-film__fallback-img {
     flex-direction: column;
     justify-content: space-between;
     align-items: stretch;
-    gap: 0.75rem;
+    gap: 0.65rem;
     height: 100%;
     width: 100%;
   }
@@ -235,11 +401,11 @@ body.no-webgl .hero-film__fallback-img {
 
   .hero-film__title-wrap {
     margin-top: auto;
-    padding-bottom: 0.2rem;
+    padding-bottom: 0.15rem;
   }
 
   .hero-film__headline {
-    font-size: clamp(1.75rem, 7.6vw, 2.75rem);
+    font-size: clamp(1.75rem, 7.6vw, 2.7rem);
     line-height: 0.9;
   }
 
@@ -248,8 +414,8 @@ body.no-webgl .hero-film__fallback-img {
     flex-shrink: 0;
     align-items: flex-start;
     text-align: left;
-    gap: 0.65rem;
-    padding-bottom: 0.15rem;
+    gap: 0.6rem;
+    padding-bottom: 0.1rem;
   }
 
   .hero-film__actions {
@@ -262,9 +428,9 @@ body.no-webgl .hero-film__fallback-img {
   }
 
   .hero-film__actions .btn {
-    padding: 0.82rem 1.15rem 0.78rem;
-    font-size: 0.7rem;
-    gap: 0.55rem;
+    padding: 0.8rem 1.12rem 0.76rem;
+    font-size: 0.69rem;
+    gap: 0.5rem;
   }
 
   .hero-film__scroll {

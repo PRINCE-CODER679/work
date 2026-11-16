@@ -73,7 +73,7 @@ export function Home({ ready, onOpenCase }) {
       <ProjectRingSection onOpenCase={onOpenCase} />
       <TechUniverseSection onOpenCase={onOpenCase} />
       <DsaSection />
-      <ExperimentLabSection />
+      <ExperimentLabSection onOpenCase={onOpenCase} />
       <DirectionSection />
       <ContactSection />
     </main>

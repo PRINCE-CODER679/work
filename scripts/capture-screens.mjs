@@ -28,7 +28,7 @@ for (const p of projects) {
   const page = await browser.newPage();
   const out = { ...p, pages: [] };
   try {
-    await page.goto(p.url, { waitUntil: 'networkidle2', timeout: 60000 }).catch(() => {});
+    await page.goto(p.url, { waitUntil: 'networkidle2', timeout: 60000 }).catch(() => { });
     await sleep(4000);
     const grab = async (tag) => {
       const meta = await page.evaluate(() => ({
@@ -58,7 +58,7 @@ for (const p of projects) {
     const internal = [...new Set(m.links.map((l) => l.h).filter((h) => h.startsWith(origin) && h !== p.url && !h.includes('#')))].slice(0, 6);
     let k = 1;
     for (const href of internal) {
-      await page.goto(href, { waitUntil: 'networkidle2', timeout: 45000 }).catch(() => {});
+      await page.goto(href, { waitUntil: 'networkidle2', timeout: 45000 }).catch(() => { });
       await sleep(3000);
       await grab('route:' + href);
       await page.screenshot({ path: path.join(IMG, `${p.id}-r${k}.webp`), type: 'webp', quality: 82 });
@@ -66,7 +66,7 @@ for (const p of projects) {
     }
     // mobile hero
     await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
-    await page.goto(p.url, { waitUntil: 'networkidle2', timeout: 60000 }).catch(() => {});
+    await page.goto(p.url, { waitUntil: 'networkidle2', timeout: 60000 }).catch(() => { });
     await sleep(3000);
     await page.screenshot({ path: path.join(IMG, `${p.id}-m1.webp`), type: 'webp', quality: 80 });
   } catch (e) { out.error = String(e); }
@@ -88,9 +88,9 @@ if (Array.isArray(repos)) {
         try {
           const res = await fetch(`https://raw.githubusercontent.com/${r.full_name}/${br}/README.md`);
           if (res.ok) { readmes[r.name] = (await res.text()).slice(0, 8000); break; }
-        } catch (e) {}
+        } catch (e) { }
       }
-      try { readmes[r.name + '__languages'] = await gh(r.languages_url); } catch (e) {}
+      try { readmes[r.name + '__languages'] = await gh(r.languages_url); } catch (e) { }
     }
   }
 }

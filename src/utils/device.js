@@ -13,11 +13,10 @@ export function detectWebGL() {
 }
 
 export function detectTier() {
-  const w = window.innerWidth;
   const mem = navigator.deviceMemory || 8;
   const cores = navigator.hardwareConcurrency || 8;
   const touch = window.matchMedia('(hover: none)').matches;
-  if (touch && (w < 820 || mem <= 4)) return 'low';
+  if (mem <= 2 || cores <= 2) return 'low';
   if (touch || cores <= 4 || mem <= 4) return 'mid';
   return 'high';
 }
