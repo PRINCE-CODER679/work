@@ -15,7 +15,7 @@ import {
 
 useGLTF.preload('/assets/toolbox/asrar-toolbox.glb');
 
-// Foreground 8 constellation slots cleanly centered between open case rim and lifted canopy (Panel 03 match)
+// Foreground 8 constellation slots cleanly centered between open case rim and lifted canopy (Desktop)
 const FOREGROUND_SLOTS = [
   { pos: [-1.38, 1.88, 0.22], rot: [0.04, 0.3, 0.04], scale: 0.94 },
   { pos: [-1.18, 1.28, 0.48], rot: [-0.04, 0.26, -0.04], scale: 0.94 },
@@ -27,18 +27,30 @@ const FOREGROUND_SLOTS = [
   { pos: [-0.74, 1.98, -0.14], rot: [0.06, 0.18, 0.0], scale: 0.85 },
 ];
 
+// Portrait mobile 8 foreground constellation slots: larger scale, wider vertical arch, zero horizontal clipping on 320px-430px
+const MOBILE_FOREGROUND_SLOTS = [
+  { pos: [-0.94, 2.02, 0.22], rot: [0.04, 0.22, 0.03], scale: 1.16 },
+  { pos: [0.94, 2.02, 0.22], rot: [0.04, -0.22, -0.03], scale: 1.16 },
+  { pos: [-1.02, 1.54, 0.38], rot: [0.0, 0.2, 0.0], scale: 1.2 },
+  { pos: [1.02, 1.54, 0.38], rot: [0.0, -0.2, 0.0], scale: 1.2 },
+  { pos: [-0.82, 1.1, 0.62], rot: [-0.05, 0.16, -0.02], scale: 1.14 },
+  { pos: [0.82, 1.1, 0.62], rot: [-0.05, -0.16, 0.02], scale: 1.14 },
+  { pos: [-0.46, 2.24, 0.02], rot: [0.06, 0.12, 0.0], scale: 1.08 },
+  { pos: [0.46, 2.24, 0.02], rot: [0.06, -0.12, 0.0], scale: 1.08 },
+];
+
 // Secondary rear orbit slots cleanly framing behind foreground wings
-function getBackOrbitSlot(index, total) {
+function getBackOrbitSlot(index, total, portrait = false) {
   const frac = total > 1 ? index / (total - 1) : 0.5;
   const angle = Math.PI * 0.14 + frac * Math.PI * 0.72;
-  const r = 1.66;
+  const r = portrait ? 0.98 : 1.66;
   const x = Math.cos(angle) * r * (index % 2 === 0 ? 1 : -1) * 0.92;
-  const y = 1.54 + Math.sin(angle * 2) * 0.28;
-  const z = -0.56 - Math.sin(angle) * 0.45;
+  const y = (portrait ? 1.58 : 1.54) + Math.sin(angle * 2) * (portrait ? 0.36 : 0.28);
+  const z = -0.56 - Math.sin(angle) * 0.42;
   return {
     pos: [x, y, z],
     rot: [0.04, -x * 0.18, 0],
-    scale: 0.7,
+    scale: portrait ? 0.8 : 0.7,
   };
 }
 
@@ -88,7 +100,7 @@ function getOrangeGlowTexture() {
 /**
  * Individual floating crystal-frosted glass technology plaque.
  */
-function TechGlassTile({ node, slot, inCategory, emergedRef, isOpened, onSelect, index }) {
+function TechGlassTile({ node, slot, mobileSlot, isPortraitRef, inCategory, emergedRef, isOpened, onSelect, index }) {
   const groupRef = useRef(null);
   const glassMatRef = useRef(null);
   const borderMatRef = useRef(null);
@@ -114,27 +126,29 @@ function TechGlassTile({ node, slot, inCategory, emergedRef, isOpened, onSelect,
       return;
     }
 
+    const activeSlot = isPortraitRef.current && mobileSlot ? mobileSlot : slot;
+
     g.visible = true;
     const staggerDelay = Math.min(0.32, index * 0.022);
     const localT = Math.min(1, Math.max(0, (emerge - staggerDelay) / (1 - staggerDelay)));
     const eased = 1 - Math.pow(1 - localT, 3);
 
     const floatBob = isOpened ? Math.sin(t * 1.45 + index * 0.85) * 0.032 : 0;
-    const targetX = lerp(0, slot.pos[0], eased);
-    const targetY = lerp(0.75, slot.pos[1] + floatBob, eased);
-    const targetZ = lerp(0.0, slot.pos[2], eased);
+    const targetX = lerp(0, activeSlot.pos[0], eased);
+    const targetY = lerp(0.75, activeSlot.pos[1] + floatBob, eased);
+    const targetZ = lerp(0.0, activeSlot.pos[2], eased);
 
     smoothPos.current.x = damp(smoothPos.current.x, targetX, 7.5, dt);
     smoothPos.current.y = damp(smoothPos.current.y, targetY, 7.5, dt);
     smoothPos.current.z = damp(smoothPos.current.z, targetZ, 7.5, dt);
     g.position.copy(smoothPos.current);
 
-    g.rotation.x = lerp(0.55, slot.rot[0], eased);
-    g.rotation.y = lerp(0, slot.rot[1] + (hovered ? 0.08 : 0), eased);
-    g.rotation.z = lerp(0.2, slot.rot[2], eased);
+    g.rotation.x = lerp(0.55, activeSlot.rot[0], eased);
+    g.rotation.y = lerp(0, activeSlot.rot[1] + (hovered ? 0.08 : 0), eased);
+    g.rotation.z = lerp(0.2, activeSlot.rot[2], eased);
 
     const focusMult = hovered ? 1.15 : inCategory ? 1.0 : 0.78;
-    const tgtScale = slot.scale * focusMult * eased;
+    const tgtScale = activeSlot.scale * focusMult * eased;
     smoothScale.current = damp(smoothScale.current, tgtScale, 8.5, dt);
     g.scale.setScalar(Math.max(0.001, smoothScale.current));
 
@@ -216,7 +230,7 @@ function TechGlassTile({ node, slot, inCategory, emergedRef, isOpened, onSelect,
 /**
  * Center Glowing Orange Hero Selection Cube (Panel 03 central centerpiece highlighting Python / active node).
  */
-function HeroSelectionCube({ selectedNode, emergedRef, isOpened, onClickHero }) {
+function HeroSelectionCube({ selectedNode, emergedRef, isOpened, isPortraitRef, onClickHero }) {
   const cubeGroupRef = useRef(null);
   const rimShaderMatRef = useRef(null);
   const iconMatRef = useRef(null);
@@ -250,13 +264,16 @@ function HeroSelectionCube({ selectedNode, emergedRef, isOpened, onClickHero }) 
     }
     g.visible = true;
 
+    const portrait = isPortraitRef.current;
     const localT = Math.min(1, emerge * 1.15);
     const eased = 1 - Math.pow(1 - localT, 3);
 
     const bob = isOpened ? Math.sin(t * 1.35) * 0.036 : 0;
-    g.position.set(0, lerp(0.75, 1.66 + bob, eased), lerp(0, 0.44, eased));
+    const restY = portrait ? 1.54 : 1.66;
+    const restZ = portrait ? 0.52 : 0.44;
+    g.position.set(0, lerp(0.75, restY + bob, eased), lerp(0, restZ, eased));
 
-    const targetScale = (hovered ? 1.08 : 1.0) * eased;
+    const targetScale = (hovered ? 1.08 : portrait ? 1.12 : 1.0) * eased;
     const curS = damp(g.scale.x, targetScale, 8, dt);
     g.scale.setScalar(Math.max(0.001, curS));
 
@@ -417,33 +434,38 @@ function ToolboxWorld({
     [selectedId]
   );
 
-  // Showcase curated Panel 03 icons cleanly in foreground orbit around active selection
+  // Showcase curated plaques in BOTH Desktop and Portrait Mobile configurations seamlessly
   const tileAllocations = useMemo(() => {
     const others = TECH_NODES.filter((n) => n.id !== selectedNode.id);
     const matching = others.filter((n) => activeCat === 'all' || n.cat === activeCat);
-    // Keep iconic diverse foreground showcase items alongside category nodes so the 8 foreground plaques read crisply
     const nonMatching = others.filter((n) => activeCat !== 'all' && n.cat !== activeCat);
     const ordered = [...matching, ...nonMatching];
 
     const backTotal = Math.max(0, ordered.length - FOREGROUND_SLOTS.length);
     return ordered.map((node, i) => {
-      const slot =
-        i < FOREGROUND_SLOTS.length
-          ? FOREGROUND_SLOTS[i]
-          : getBackOrbitSlot(i - FOREGROUND_SLOTS.length, backTotal);
+      const isFg = i < FOREGROUND_SLOTS.length;
+      const slot = isFg ? FOREGROUND_SLOTS[i] : getBackOrbitSlot(i - FOREGROUND_SLOTS.length, backTotal, false);
+      const mobileSlot = isFg
+        ? MOBILE_FOREGROUND_SLOTS[i]
+        : getBackOrbitSlot(i - FOREGROUND_SLOTS.length, backTotal, true);
       const inCategory = activeCat === 'all' || node.cat === activeCat;
-      return { node, slot, inCategory, index: i };
+      return { node, slot, mobileSlot, inCategory, index: i };
     });
   }, [selectedNode.id, activeCat]);
 
   const smoothPtr = useRef({ x: 0, y: 0 });
   const lookAtTarget = useRef(new THREE.Vector3(0, -0.15, 0));
+  const isPortraitRef = useRef(false);
 
   useFrame((state, delta) => {
     const t = state.clock.elapsedTime;
     const dt = Math.min(0.05, delta);
     const anim = animRef.current;
     const reduced = prefersReducedMotion();
+
+    const aspect = state.size.width / Math.max(1, state.size.height);
+    const isPortrait = state.size.width < 768 || aspect < 1.12;
+    isPortraitRef.current = isPortrait;
 
     emergedProxyRef.current = anim.tilesEmerge;
 
@@ -457,7 +479,7 @@ function ToolboxWorld({
       const vibX = anim.vibration > 0.01 ? Math.sin(t * 72) * 0.025 * anim.vibration : 0;
       const vibZ = anim.vibration > 0.01 ? Math.cos(t * 64) * 0.018 * anim.vibration : 0;
       masterGroupRef.current.position.set(vibX, -1.05, vibZ);
-      masterGroupRef.current.rotation.y = 0.22 + smoothPtr.current.x * 0.05;
+      masterGroupRef.current.rotation.y = (isPortrait ? 0.16 : 0.22) + smoothPtr.current.x * 0.05;
     }
 
     // Articulate draw latches
@@ -470,22 +492,24 @@ function ToolboxWorld({
       rigRefs.latchRight.position.y = 1.01 - latchDrop;
     }
 
-    // Articulate lid: calibrated so Panel 02 mid-open (`lidLift ~ 0.44`) and Panel 03 high canopy (`lidLift = 1`) stay unclipped
+    // Articulate lid: slightly tighter open lift on portrait phones so full canopy + handle stay visible inside frame
     if (rigRefs.lidGroup) {
-      const liftY = lerp(0.93, 2.48, anim.lidLift);
+      const targetLift = isPortrait ? 2.34 : 2.48;
+      const liftY = lerp(0.93, targetLift, anim.lidLift);
       const pullZ = lerp(0, -0.58, anim.lidLift);
-      const pitchX = lerp(0, -0.58, anim.lidLift);
+      const pitchX = lerp(0, isPortrait ? -0.52 : -0.58, anim.lidLift);
       rigRefs.lidGroup.position.set(0, liftY, pullZ);
       rigRefs.lidGroup.rotation.x = pitchX;
     }
 
-    // Orbital wireframe track: static shallow tilt on outer pivot + gentle local Y spin on inner ring (never flips vertical!)
+    // Orbital wireframe track
     if (rigRefs.orbitalRig && rigRefs.orbitalSpinner) {
       const s = Math.max(0.001, anim.orbitalReveal);
       rigRefs.orbitalRig.visible = anim.orbitalReveal > 0.02;
-      rigRefs.orbitalRig.position.set(0, 1.58, 0.24);
+      rigRefs.orbitalRig.position.set(0, isPortrait ? 1.52 : 1.58, 0.24);
       rigRefs.orbitalRig.rotation.set(0.24, 0, -0.14);
-      rigRefs.orbitalRig.scale.set(s * 0.96, s * 0.96, s * 0.68);
+      const xMult = isPortrait ? 0.68 : 0.96;
+      rigRefs.orbitalRig.scale.set(s * xMult, s * 0.96, s * 0.68);
       rigRefs.orbitalSpinner.rotation.y = reduced ? 0 : t * 0.14;
     }
 
@@ -529,19 +553,37 @@ function ToolboxWorld({
       sparksRef.current.visible = false;
     }
 
-    // Calibrated camera distances (`8.35 -> 9.15` + aspect boost on 16:10 desktops) so platform always clears side HUDs
-    const isNarrow = state.size.width < 760;
-    const aspect = state.size.width / Math.max(1, state.size.height);
-    const aspectBoost = isNarrow ? 0 : Math.max(0, (1.84 - aspect) * 2.8);
-    const camZ = lerp(isNarrow ? 9.0 : 8.35 + aspectBoost, isNarrow ? 9.8 : 9.15 + aspectBoost, anim.cameraShift);
-    const camY = lerp(1.02, 1.38, anim.cameraShift) + smoothPtr.current.y * 0.12;
-    const camX = -0.1 + smoothPtr.current.x * 0.28;
+    // Analytical fit-to-bounds camera solver: dominates portrait mobile width (~85-92% case width closed, zero tile clipping opened)
+    const tanHalfV = 0.30573; // tan(34deg / 2)
+    let camZ;
+    let lookY;
+    let camY;
+    let camX;
+
+    if (isPortrait) {
+      const closedZ = Math.max(1.42 / (tanHalfV * aspect), 1.05 / tanHalfV);
+      const openZ = Math.max(1.56 / (tanHalfV * aspect), 1.96 / tanHalfV);
+      camZ = lerp(closedZ, openZ, anim.cameraShift);
+      lookY = lerp(-0.28, 0.42, anim.cameraShift);
+      camY = lerp(0.55, 0.96, anim.cameraShift) + smoothPtr.current.y * 0.08;
+      camX = smoothPtr.current.x * 0.14;
+    } else {
+      const isShortLandscape = state.size.height < 520;
+      const aspectBoost = Math.max(0, (1.84 - aspect) * 2.8);
+      const minOpenV = isShortLandscape ? 1.92 / tanHalfV : 0;
+      const baseClosed = Math.max(8.35 + aspectBoost, minOpenV * 0.9);
+      const baseOpen = Math.max(9.15 + aspectBoost, minOpenV);
+      camZ = lerp(baseClosed, baseOpen, anim.cameraShift);
+      lookY = lerp(-0.18, 0.45, anim.cameraShift);
+      camY = lerp(1.02, 1.38, anim.cameraShift) + smoothPtr.current.y * 0.12;
+      camX = -0.1 + smoothPtr.current.x * 0.28;
+    }
 
     state.camera.position.x = damp(state.camera.position.x, camX, 5.2, dt);
     state.camera.position.y = damp(state.camera.position.y, camY, 5.2, dt);
     state.camera.position.z = damp(state.camera.position.z, camZ, 5.2, dt);
 
-    lookAtTarget.current.y = damp(lookAtTarget.current.y, lerp(-0.18, 0.45, anim.cameraShift), 5.2, dt);
+    lookAtTarget.current.y = damp(lookAtTarget.current.y, lookY, 5.2, dt);
     state.camera.lookAt(0, lookAtTarget.current.y, 0);
   });
 
@@ -622,8 +664,8 @@ function ToolboxWorld({
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.05, 0]} receiveShadow>
         <planeGeometry args={[32, 32]} />
         <MeshReflectorMaterial
-          blur={[220, 70]}
-          resolution={512}
+          blur={typeof window !== 'undefined' && window.innerWidth < 768 ? [140, 40] : [220, 70]}
+          resolution={typeof window !== 'undefined' && window.innerWidth < 768 ? 256 : 512}
           mixBlur={0.85}
           mixStrength={2.4}
           roughness={0.38}
@@ -719,15 +761,18 @@ function ToolboxWorld({
           selectedNode={selectedNode}
           emergedRef={emergedProxyRef}
           isOpened={isOpened}
+          isPortraitRef={isPortraitRef}
           onClickHero={() => onSelectNode(selectedNode.id)}
         />
 
         {/* Floating Transparent Glass Technology Plaques */}
-        {tileAllocations.map(({ node, slot, inCategory, index }) => (
+        {tileAllocations.map(({ node, slot, mobileSlot, inCategory, index }) => (
           <TechGlassTile
             key={node.id}
             node={node}
             slot={slot}
+            mobileSlot={mobileSlot}
+            isPortraitRef={isPortraitRef}
             inCategory={inCategory}
             emergedRef={emergedProxyRef}
             isOpened={isOpened}
@@ -751,11 +796,12 @@ export function ToolboxScene3D({
   onSelectNode,
   onUnlockClick,
 }) {
+  const isCompactViewport = typeof window !== 'undefined' && window.innerWidth < 768;
   return (
     <div className="tb-canvas-wrap">
       <Canvas
-        shadows
-        dpr={[1, 2]}
+        shadows={!isCompactViewport}
+        dpr={isCompactViewport ? [1, 1.5] : [1, 2]}
         camera={{ position: [-0.1, 1.02, 8.35], fov: 34, near: 0.1, far: 50 }}
         gl={{ antialias: true, powerPreference: 'high-performance', alpha: false }}
       >

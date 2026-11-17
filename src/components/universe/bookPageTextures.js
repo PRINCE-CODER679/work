@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { JOURNEY_MARKERS, LAB_SYSTEMS, ARCHIVE_PROJECTS, SIGNAL_PROFILE } from './bookChaptersData';
+import { JOURNEY_MARKERS, SIGNAL_PROFILE } from './bookChaptersData';
 
 const TEX_W = 1440;
 const TEX_H = 1008;
@@ -506,19 +506,19 @@ function paintPageHeading(ctx, { num, title, subtitle = '', x = 92, y = 112, sca
   ctx.fillText(title, x, y + Math.round(70 * scale));
 
   if (subtitle) {
-    ctx.fillStyle = 'rgba(232, 224, 212, 0.78)';
-    ctx.font = `400 ${Math.round(22 * scale)}px "Inter Tight", system-ui, sans-serif`;
+    ctx.fillStyle = 'rgba(236, 228, 216, 0.84)';
+    ctx.font = `400 ${Math.round(25 * scale)}px "Inter Tight", system-ui, sans-serif`;
     const lines = subtitle.split('\n');
     lines.forEach((line, idx) => {
-      ctx.fillText(line, x, y + Math.round((112 + idx * 30) * scale));
+      ctx.fillText(line, x, y + Math.round((114 + idx * 32) * scale));
     });
 
-    const ruleY = y + Math.round((128 + lines.length * 30) * scale);
-    ctx.strokeStyle = 'rgba(222, 174, 108, 0.55)';
-    ctx.lineWidth = 1.6;
+    const ruleY = y + Math.round((130 + lines.length * 32) * scale);
+    ctx.strokeStyle = 'rgba(222, 174, 108, 0.58)';
+    ctx.lineWidth = 1.8;
     ctx.beginPath();
     ctx.moveTo(x, ruleY);
-    ctx.lineTo(x + 64 * scale, ruleY);
+    ctx.lineTo(x + 68 * scale, ruleY);
     ctx.stroke();
   }
   ctx.restore();
@@ -580,51 +580,50 @@ function paintArchiveLeftPage(ctx) {
   ctx.fillText('VERIFIED DEPLOYMENTS // VERCEL & GITHUB', 130, TEX_H - 90);
 }
 
-function paintArchiveRightPage(ctx) {
-  paintCharcoalPageBase(ctx, 'right');
-  ctx.fillStyle = 'rgba(224, 182, 122, 0.72)';
+function paintRightPageFolioFrame(ctx, headerLabel) {
+  ctx.fillStyle = 'rgba(224, 182, 122, 0.78)';
   ctx.font = '500 20px "JetBrains Mono", monospace';
-  ctx.fillText('ARCHIVE FOLIO · 04 SYSTEMS INDEXED', 92, 92);
+  ctx.fillText(headerLabel, 92, 92);
 
-  ctx.strokeStyle = 'rgba(224, 182, 122, 0.22)';
+  ctx.strokeStyle = 'rgba(224, 182, 122, 0.24)';
   ctx.lineWidth = 1.2;
   ctx.beginPath();
-  ctx.moveTo(92, 112);
-  ctx.lineTo(TEX_W - 92, 112);
+  ctx.moveTo(92, 114);
+  ctx.lineTo(TEX_W - 92, 114);
   ctx.stroke();
 
-  // Tactile specimen plate outlines on dark paper framing interactive cards
-  const boxes = [
-    [92, 150, 580, 340],
-    [712, 150, 620, 340],
-    [92, 530, 580, 340],
-    [712, 530, 620, 340],
-  ];
-  boxes.forEach(([bx, by, bw, bh], i) => {
-    ctx.fillStyle = 'rgba(14, 14, 18, 0.72)';
-    ctx.fillRect(bx, by, bw, bh);
-    ctx.strokeStyle = 'rgba(224, 178, 114, 0.34)';
-    ctx.strokeRect(bx, by, bw, bh);
+  // Single refined outer editorial margin frame (keeps DOM cards/spotlights clean on desktop & mobile)
+  const fx = 92;
+  const fy = 144;
+  const fw = TEX_W - 184;
+  const fh = TEX_H - 232;
+  ctx.fillStyle = 'rgba(13, 13, 17, 0.42)';
+  ctx.fillRect(fx, fy, fw, fh);
+  ctx.strokeStyle = 'rgba(224, 178, 114, 0.22)';
+  ctx.strokeRect(fx, fy, fw, fh);
 
-    // Tactile gold corner L-ticks
-    ctx.strokeStyle = 'rgba(255, 196, 116, 0.72)';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(bx, by + 22);
-    ctx.lineTo(bx, by);
-    ctx.lineTo(bx + 22, by);
-    ctx.moveTo(bx + bw - 22, by + bh);
-    ctx.lineTo(bx + bw, by + bh);
-    ctx.lineTo(bx + bw, by + bh - 22);
-    ctx.stroke();
+  const tick = 26;
+  ctx.strokeStyle = 'rgba(255, 196, 116, 0.72)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(fx, fy + tick);
+  ctx.lineTo(fx, fy);
+  ctx.lineTo(fx + tick, fy);
+  ctx.moveTo(fx + fw - tick, fy);
+  ctx.lineTo(fx + fw, fy);
+  ctx.lineTo(fx + fw, fy + tick);
+  ctx.moveTo(fx, fy + fh - tick);
+  ctx.lineTo(fx, fy + fh);
+  ctx.lineTo(fx + tick, fy + fh);
+  ctx.moveTo(fx + fw - tick, fy + fh);
+  ctx.lineTo(fx + fw, fy + fh);
+  ctx.lineTo(fx + fw, fy + fh - tick);
+  ctx.stroke();
+}
 
-    const p = ARCHIVE_PROJECTS[i];
-    if (p) {
-      ctx.fillStyle = 'rgba(235, 224, 210, 0.25)';
-      ctx.font = 'italic 400 44px "Bodoni Moda", Georgia, serif';
-      ctx.fillText(p.title, bx + 28, by + 76);
-    }
-  });
+function paintArchiveRightPage(ctx) {
+  paintCharcoalPageBase(ctx, 'right');
+  paintRightPageFolioFrame(ctx, 'ARCHIVE FOLIO · 04 SYSTEMS INDEXED');
 }
 
 function paintLabLeftPage(ctx) {
@@ -661,42 +660,25 @@ function paintLabLeftPage(ctx) {
 
 function paintLabRightPage(ctx) {
   paintCharcoalPageBase(ctx, 'right');
-  ctx.fillStyle = 'rgba(224, 182, 122, 0.75)';
-  ctx.font = '500 20px "JetBrains Mono", monospace';
-  ctx.fillText('SCIENTIFIC SPECIMEN INDEX // STACK & ALGORITHMS', 92, 92);
+  paintRightPageFolioFrame(ctx, 'SCIENTIFIC SPECIMEN INDEX // STACK & ALGORITHMS');
 
-  // Subtle blueprint axes + rings under interactive scientific callout cards
+  // Subtle blueprint axes inside folio frame under interactive scientific callout plates
   ctx.save();
-  ctx.strokeStyle = 'rgba(222, 176, 114, 0.12)';
+  ctx.strokeStyle = 'rgba(222, 176, 114, 0.1)';
   ctx.lineWidth = 1;
-  for (let gx = 120; gx < TEX_W - 80; gx += 120) {
+  for (let gx = 152; gx < TEX_W - 110; gx += 120) {
     ctx.beginPath();
-    ctx.moveTo(gx, 130);
-    ctx.lineTo(gx, TEX_H - 90);
+    ctx.moveTo(gx, 148);
+    ctx.lineTo(gx, TEX_H - 96);
     ctx.stroke();
   }
-  for (let gy = 160; gy < TEX_H - 90; gy += 120) {
+  for (let gy = 184; gy < TEX_H - 96; gy += 120) {
     ctx.beginPath();
-    ctx.moveTo(92, gy);
-    ctx.lineTo(TEX_W - 92, gy);
+    ctx.moveTo(96, gy);
+    ctx.lineTo(TEX_W - 96, gy);
     ctx.stroke();
   }
   ctx.restore();
-
-  LAB_SYSTEMS.forEach((sys, i) => {
-    const col = i % 2;
-    const row = Math.floor(i / 2);
-    const bx = 92 + col * 620;
-    const by = 152 + row * 370;
-    ctx.fillStyle = 'rgba(14, 14, 18, 0.66)';
-    ctx.fillRect(bx, by, 580, 330);
-    ctx.strokeStyle = 'rgba(222, 176, 114, 0.3)';
-    ctx.strokeRect(bx, by, 580, 330);
-
-    ctx.fillStyle = 'rgba(255, 190, 108, 0.55)';
-    ctx.font = '500 18px "JetBrains Mono", monospace';
-    ctx.fillText(sys.code, bx + 26, by + 42);
-  });
 }
 
 function paintSignalLeftPage(ctx) {
@@ -741,16 +723,7 @@ function paintSignalLeftPage(ctx) {
 
 function paintSignalRightPage(ctx) {
   paintCharcoalPageBase(ctx, 'right');
-  ctx.fillStyle = 'rgba(224, 182, 122, 0.72)';
-  ctx.font = '500 20px "JetBrains Mono", monospace';
-  ctx.fillText('VERIFIED COMMUNICATION CHANNELS', 92, 92);
-
-  [150, 370, 590].forEach((yPos) => {
-    ctx.fillStyle = 'rgba(14, 14, 18, 0.7)';
-    ctx.fillRect(92, yPos, TEX_W - 184, 184);
-    ctx.strokeStyle = 'rgba(224, 178, 114, 0.34)';
-    ctx.strokeRect(92, yPos, TEX_W - 184, 184);
-  });
+  paintRightPageFolioFrame(ctx, 'VERIFIED COMMUNICATION CHANNELS');
 }
 
 function paintFrontierLeftPage(ctx) {
@@ -797,20 +770,7 @@ function paintFrontierRightPage(ctx) {
   ctx.fillStyle = hg;
   ctx.fillRect(0, 0, TEX_W, TEX_H);
 
-  ctx.fillStyle = 'rgba(224, 182, 122, 0.72)';
-  ctx.font = '500 20px "JetBrains Mono", monospace';
-  ctx.fillText('FOUR ACTIVE RESEARCH & BUILD VECTORS', 92, 92);
-
-  for (let i = 0; i < 4; i++) {
-    const col = i % 2;
-    const row = Math.floor(i / 2);
-    const bx = 92 + col * 620;
-    const by = 152 + row * 370;
-    ctx.fillStyle = 'rgba(14, 14, 18, 0.68)';
-    ctx.fillRect(bx, by, 580, 330);
-    ctx.strokeStyle = 'rgba(224, 178, 114, 0.3)';
-    ctx.strokeRect(bx, by, 580, 330);
-  }
+  paintRightPageFolioFrame(ctx, 'FOUR ACTIVE RESEARCH & BUILD VECTORS');
 }
 
 function createCanvasTex(painter) {

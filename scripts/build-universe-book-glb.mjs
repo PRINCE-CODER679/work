@@ -26,7 +26,7 @@ function lerp(a, b, t) {
  */
 function sampleBoardY(side, u) {
   if (side === 'left') {
-    return 0.045 + u * 0.24;
+    return 0.045 + Math.pow(u, 1.3) * 0.12;
   }
   return 0.042 + Math.pow(u, 1.4) * 0.075;
 }
@@ -36,7 +36,7 @@ function sampleBoardY(side, u) {
  */
 function createCoverBoardGeometry(side, uSegs = 22, vSegs = 12) {
   const { pageW, pageH } = BOOK_DIMS;
-  const coverW = pageW * (side === 'left' ? 0.68 : 1.0) + 0.13;
+  const coverW = pageW * (side === 'left' ? 0.94 : 1.0) + 0.13;
   const halfH = pageH * 0.5 + 0.085;
   const thickness = 0.055;
 

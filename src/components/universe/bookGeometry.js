@@ -37,31 +37,30 @@ export function sampleBookPagePoint(side, u, v, target = new THREE.Vector3(), yB
   const zBase = v * halfH;
 
   if (side === 'right') {
-    // Graceful broad S-curve arch matching Reference 01's wide open right page
-    const xSpread = u * pageW * 0.96 + Math.sin(u * Math.PI) * 0.06;
-    const spineRise = Math.sin(Math.pow(u, 0.7) * Math.PI * 0.9) * 0.36;
-    const outerCurl = Math.pow(u, 3.2) * 0.09;
-    // Slight sculptural lift along upper spine & subtle lower corner curl
-    const edgeWave = (v < 0 ? -v * 0.04 : v * 0.025) * Math.sin(u * Math.PI * 0.85);
+    // Broad sculpted right spread arching forward (+y local) out of the spine valley
+    const xSpread = u * pageW * 0.96 + Math.sin(u * Math.PI) * 0.04;
+    const spineRise = Math.sin(Math.pow(u, 0.78) * Math.PI * 0.92) * 0.34;
+    const outerCurl = Math.pow(u, 3.0) * 0.06;
+    const edgeWave = (v < 0 ? -v * 0.032 : v * 0.022) * Math.sin(u * Math.PI * 0.85);
     const cornerTip = u > 0.78 && v > 0.65 ? ((u - 0.78) / 0.22) * ((v - 0.65) / 0.35) * 0.045 : 0;
 
     target.set(
       xSpread,
       spineY + spineRise + outerCurl + edgeWave + cornerTip + yBias,
-      zBase - Math.sin(u * Math.PI) * 0.04 * (v * 0.5)
+      zBase - Math.sin(u * Math.PI) * 0.03 * (v * 0.5)
     );
     return target;
   }
 
-  // Left page: compact upright curved fan matching Reference 01 left third
-  const xSpread = -(u * pageW * 0.64 + Math.sin(u * Math.PI * 0.88) * 0.05);
-  const ramp = Math.pow(u, 1.04) * 0.66;
-  const arch = Math.sin(u * Math.PI * 0.92) * 0.26;
-  const zPull = Math.sin(u * Math.PI) * 0.04;
+  // Balanced sculpted left spread facing viewer cleanly with subtle authentic book-leaf asymmetry
+  const xSpread = -(u * pageW * 0.90 + Math.sin(u * Math.PI * 0.9) * 0.04);
+  const ramp = Math.pow(u, 1.08) * 0.14;
+  const arch = Math.sin(Math.pow(u, 0.8) * Math.PI * 0.92) * 0.34;
+  const zPull = Math.sin(u * Math.PI) * 0.025;
   target.set(
     xSpread,
     spineY + ramp + arch + yBias,
-    zBase + zPull * (v > 0 ? 0.55 : -0.25)
+    zBase + zPull * (v > 0 ? 0.45 : -0.2)
   );
   return target;
 }

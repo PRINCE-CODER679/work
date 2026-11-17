@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
+ import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Environment, Lightformer, MeshReflectorMaterial, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
@@ -39,8 +39,9 @@ function getAmberGlowSprite() {
   return tex;
 }
 
-const BOOK_POS = [-0.3, -0.44, 0.02];
-const BOOK_ROT = [0.05, -0.15, 0];
+// Upright nearly front-facing gallery display angle (~76.8 deg backward tilt so pages face camera directly)
+const BOOK_POS = [0, -0.04, 0];
+const BOOK_ROT = [1.34, -0.04, 0];
 
 /**
  * Interactive 3D Storybook World inside R3F `<Canvas>`.
@@ -49,11 +50,13 @@ function StorybookWorld({
   turnStateRef,
   currentChapterId,
   targetChapterId,
+  portraitFocusSide = 'right',
   cornerHover,
   orbitOffsetRef,
   markerElsRef,
   pageRegionRef,
   onStartCornerDrag,
+  onPortraitModeChange,
 }) {
   const { scene: baseBookScene } = useGLTF('/assets/universe/asrar-storybook.glb');
   const { camera, size } = useThree();
@@ -100,14 +103,12 @@ function StorybookWorld({
     return clone;
   }, [baseBookScene]);
 
-  // Geometries for static top spreads & single live-deformed turning page
   const leftLeafGeo = useMemo(() => createBookLeafGeometry('left', 0.002), []);
   const rightLeafGeo = useMemo(() => createBookLeafGeometry('right', 0.002), []);
 
   const turnSheetIndices = useMemo(() => buildTurnSheetIndexArrays(), []);
   const turnGeoFront = useMemo(() => createBookLeafGeometry('right', 0.008), []);
   const turnGeoBack = useMemo(() => {
-    // Share vertex buffers with turnGeoFront so updating turnGeoFront positions/normals deforms both sides simultaneously
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', turnGeoFront.attributes.position);
     g.setAttribute('normal', turnGeoFront.attributes.normal);
@@ -116,40 +117,39 @@ function StorybookWorld({
     return g;
   }, [turnGeoFront, turnSheetIndices]);
 
-  // Pre-warm all 5 spreads into GPU textures
-  const spreads = useMemo(() => {
+  // Lazy spread texture loading for current + target chapter to minimize mobile GPU memory
+  const curSpreadTex = useMemo(() => {
     void fontsTick;
-    return {
-      journey: getSpreadTextures('journey'),
-      archive: getSpreadTextures('archive'),
-      lab: getSpreadTextures('lab'),
-      signal: getSpreadTextures('signal'),
-      frontier: getSpreadTextures('frontier'),
-    };
-  }, [fontsTick]);
+    return getSpreadTextures(currentChapterId);
+  }, [currentChapterId, fontsTick]);
+
+  const tgtSpreadTex = useMemo(() => {
+    void fontsTick;
+    return getSpreadTextures(targetChapterId);
+  }, [targetChapterId, fontsTick]);
 
   const tableTex = useMemo(() => getTableSurfaceTexture(), []);
   const amberSprite = useMemo(() => getAmberGlowSprite(), []);
 
-  // Ambient subtle warm dust sparks rising softly above mountain sunrise / spine pocket
+  // Dusk sparkles drifting gently upward in upright book local space (`-z` is UP)
   const sparkPositions = useMemo(() => {
-    const count = 42;
+    const count = 34;
     const arr = new Float32Array(count * 3);
     for (let i = 0; i < count; i++) {
       arr[i * 3] = (Math.random() - 0.35) * 3.8;
-      arr[i * 3 + 1] = 0.25 + Math.random() * 1.45;
-      arr[i * 3 + 2] = (Math.random() - 0.5) * 2.4;
+      arr[i * 3 + 1] = 0.32 + Math.random() * 0.48;
+      arr[i * 3 + 2] = (Math.random() - 0.5) * 2.5;
     }
     return arr;
   }, []);
 
-  // Update triangle winding whenever turn direction flips
   const lastDirRef = useRef('forward');
   const smoothCornerPeek = useRef(0);
+  const lastPortraitFlagRef = useRef(null);
   const tmpVec = useMemo(() => new THREE.Vector3(), []);
   const tmpPtA = useMemo(() => new THREE.Vector3(), []);
   const tmpPtB = useMemo(() => new THREE.Vector3(), []);
-  const lookTarget = useMemo(() => new THREE.Vector3(0.05, -0.02, -0.02), []);
+  const lookTarget = useMemo(() => new THREE.Vector3(0.06, -0.05, 0.05), []);
 
   useFrame((state, rawDt) => {
     const dt = Math.min(rawDt, 0.05);
@@ -157,7 +157,14 @@ function StorybookWorld({
     const reduced = prefersReducedMotion();
     const ts = turnStateRef.current;
 
-    // 1. Subtle interactive corner peel peek or live page turn deformation
+    const aspect = size.width / Math.max(1, size.height);
+    const isPortraitSinglePage = size.width < 768 || aspect < 0.98;
+    if (lastPortraitFlagRef.current !== isPortraitSinglePage) {
+      lastPortraitFlagRef.current = isPortraitSinglePage;
+      onPortraitModeChange?.(isPortraitSinglePage);
+    }
+
+    // 1. Subtle interactive corner peel peek or live 3D deformed page turn
     const targetPeek = cornerHover && !ts.active && !reduced ? 0.085 : 0;
     smoothCornerPeek.current = damp(smoothCornerPeek.current, targetPeek, 8, dt);
 
@@ -183,26 +190,22 @@ function StorybookWorld({
       }
     }
 
-    // Assign textures for static leaves & turning front/back without flickering
-    const curSpread = spreads[currentChapterId] || spreads.journey;
-    const tgtSpread = spreads[targetChapterId] || spreads.archive;
-
     if (leftMatRef.current && rightMatRef.current && frontTurnMatRef.current && backTurnMatRef.current) {
       if (ts.active && activeDir === 'forward') {
-        leftMatRef.current.map = curSpread.left;
-        rightMatRef.current.map = tgtSpread.right;
-        frontTurnMatRef.current.map = curSpread.right;
-        backTurnMatRef.current.map = tgtSpread.left;
+        leftMatRef.current.map = curSpreadTex.left;
+        rightMatRef.current.map = tgtSpreadTex.right;
+        frontTurnMatRef.current.map = curSpreadTex.right;
+        backTurnMatRef.current.map = tgtSpreadTex.left;
       } else if (ts.active && activeDir === 'backward') {
-        leftMatRef.current.map = tgtSpread.left;
-        rightMatRef.current.map = curSpread.right;
-        frontTurnMatRef.current.map = curSpread.left;
-        backTurnMatRef.current.map = tgtSpread.right;
+        leftMatRef.current.map = tgtSpreadTex.left;
+        rightMatRef.current.map = curSpreadTex.right;
+        frontTurnMatRef.current.map = curSpreadTex.left;
+        backTurnMatRef.current.map = tgtSpreadTex.right;
       } else {
-        leftMatRef.current.map = curSpread.left;
-        rightMatRef.current.map = isDeforming ? tgtSpread.right : curSpread.right;
-        frontTurnMatRef.current.map = curSpread.right;
-        backTurnMatRef.current.map = tgtSpread.left;
+        leftMatRef.current.map = curSpreadTex.left;
+        rightMatRef.current.map = isDeforming ? tgtSpreadTex.right : curSpreadTex.right;
+        frontTurnMatRef.current.map = curSpreadTex.right;
+        backTurnMatRef.current.map = tgtSpreadTex.left;
       }
       leftMatRef.current.needsUpdate = true;
       rightMatRef.current.needsUpdate = true;
@@ -210,7 +213,7 @@ function StorybookWorld({
       backTurnMatRef.current.needsUpdate = true;
     }
 
-    // 2. Gentle golden spine breath & micro dust float
+    // 2. Gentle golden spine glow & ambient spark drift along page vertical (`-z` local)
     if (spineGlowMatRef.current) {
       spineGlowMatRef.current.opacity = reduced ? 0.72 : 0.68 + Math.sin(t * 2.1) * 0.08;
     }
@@ -218,29 +221,59 @@ function StorybookWorld({
     if (sparksRef.current && !reduced) {
       const posArr = sparksRef.current.geometry.attributes.position.array;
       for (let i = 0; i < posArr.length / 3; i++) {
-        posArr[i * 3 + 1] += dt * (0.04 + (i % 4) * 0.015);
-        if (posArr[i * 3 + 1] > 1.75) posArr[i * 3 + 1] = 0.25;
+        posArr[i * 3 + 2] -= dt * (0.045 + (i % 4) * 0.015);
+        if (posArr[i * 3 + 2] < -1.35) posArr[i * 3 + 2] = 1.25;
       }
       sparksRef.current.geometry.attributes.position.needsUpdate = true;
     }
 
-    // 3. Restrained camera orbit & responsive framing across desktop/tablet/mobile
-    const aspect = size.width / Math.max(1, size.height);
-    const narrowBoost = Math.max(0, (1.72 - aspect) * 3.15);
+    // 3. Analytical Frontal Camera Orientation + Portrait Single-Page Focus Mode
+    const tanHalfV = 0.30573; // tan(34deg / 2)
     const orbit = orbitOffsetRef.current;
     orbit.azimuth = damp(orbit.azimuth, orbit.targetAzimuth, 5.5, dt);
     orbit.polar = damp(orbit.polar, orbit.targetPolar, 5.5, dt);
 
-    const baseDist = 6.28 + narrowBoost;
-    const az = -0.17 + orbit.azimuth;
-    const el = 0.34 + orbit.polar;
-    const camX = Math.sin(az) * Math.cos(el) * baseDist;
-    const camY = Math.sin(el) * baseDist + 0.14;
+    let desiredLookX = 0.04;
+    let desiredLookY = -0.05;
+    let baseDist;
+    const turnPull = ts.active ? Math.sin(Math.min(1, Math.max(0, ts.progress)) * Math.PI) : 0;
+
+    if (isPortraitSinglePage) {
+      // Focus tightly onto a single readable upright 3D page (spine seam + fore-edge depth visible)
+      const isWidePortrait = size.width >= 768;
+      const sideTargetX = portraitFocusSide === 'left' ? -1.12 : 1.18;
+      desiredLookX = lerp(sideTargetX, 0.1, turnPull * 0.65);
+      // Offset tablet camera target upward slightly so the 3D book clears `.sb-header` cleanly
+      desiredLookY = isWidePortrait ? 0.30 : -0.02;
+
+      const focusHalfW = isWidePortrait ? 1.54 : 1.38;
+      const focusHalfH = isWidePortrait ? 2.18 : 1.78;
+      const restDist = Math.max(focusHalfW / (tanHalfV * aspect), focusHalfH / tanHalfV);
+      // Zoom out subtly mid-turn so the complete 3D curled page turn over the spine stays cleanly framed
+      baseDist = lerp(restDist, restDist + 1.45, turnPull);
+    } else {
+      // Desktop & wide tablets: frame balanced 2-page upright open book cleanly between header & dock
+      const isShortLandscape = size.height < 520;
+      desiredLookY = isShortLandscape ? 0.24 : 0.25;
+      const bookHalfW = 2.52;
+      const bookHalfH = 1.62;
+      const vMult = isShortLandscape ? 1.68 : 1.48;
+      const hMult = 1.24;
+      baseDist = Math.max((bookHalfH * vMult) / tanHalfV, (bookHalfW * hMult) / (tanHalfV * aspect));
+    }
+
+    lookTarget.x = damp(lookTarget.x, desiredLookX, 6, dt);
+    lookTarget.y = damp(lookTarget.y, desiredLookY, 6, dt);
+
+    const az = -0.03 + orbit.azimuth;
+    const el = 0.04 + orbit.polar;
+    const camX = lookTarget.x + Math.sin(az) * Math.cos(el) * baseDist;
+    const camY = lookTarget.y + Math.sin(el) * baseDist;
     const camZ = Math.cos(az) * Math.cos(el) * baseDist;
 
-    camera.position.x = damp(camera.position.x, camX, 6, dt);
-    camera.position.y = damp(camera.position.y, camY, 6, dt);
-    camera.position.z = damp(camera.position.z, camZ, 6, dt);
+    camera.position.x = damp(camera.position.x, camX, 6.2, dt);
+    camera.position.y = damp(camera.position.y, camY, 6.2, dt);
+    camera.position.z = damp(camera.position.z, camZ, 6.2, dt);
     camera.lookAt(lookTarget);
     camera.updateMatrixWorld();
 
@@ -248,7 +281,7 @@ function StorybookWorld({
     if (bookGroupRef.current) {
       bookGroupRef.current.updateMatrixWorld(true);
       const projectSurface = (side, u, v, outVec) => {
-        sampleBookPagePoint(side, u, v, outVec, 0.014);
+        sampleBookPagePoint(side, u, v, outVec, 0.016);
         outVec.applyMatrix4(bookGroupRef.current.matrixWorld);
         outVec.project(camera);
         return {
@@ -260,16 +293,18 @@ function StorybookWorld({
       for (const m of JOURNEY_MARKERS) {
         const elRef = markerElsRef.current[m.id];
         if (elRef) {
-          const pt2 = projectSurface('right', m.u, m.v, tmpVec);
+          const uCoord = isPortraitSinglePage && m.mobileU != null ? m.mobileU : m.u;
+          const vCoord = isPortraitSinglePage && m.mobileV != null ? m.mobileV : m.v;
+          const pt2 = projectSurface('right', uCoord, vCoord, tmpVec);
           elRef.style.transform = `translate3d(${pt2.x.toFixed(1)}px, ${pt2.y.toFixed(1)}px, 0) translate(-50%, calc(-100% + 4px))`;
         }
       }
 
       if (pageRegionRef.current) {
-        const tl = projectSurface('right', 0.06, -0.82, tmpPtA);
-        const br = projectSurface('right', 0.94, 0.7, tmpPtB);
-        const w = Math.max(180, br.x - tl.x);
-        const h = Math.max(140, br.y - tl.y);
+        const tl = projectSurface('right', 0.072, -0.68, tmpPtA);
+        const br = projectSurface('right', 0.928, 0.74, tmpPtB);
+        const w = Math.max(175, br.x - tl.x);
+        const h = Math.max(150, br.y - tl.y);
         pageRegionRef.current.style.left = `${tl.x.toFixed(1)}px`;
         pageRegionRef.current.style.top = `${tl.y.toFixed(1)}px`;
         pageRegionRef.current.style.width = `${w.toFixed(1)}px`;
@@ -278,46 +313,48 @@ function StorybookWorld({
     }
   });
 
+  const isCompactDevice = typeof window !== 'undefined' && window.innerWidth < 768;
+
   return (
     <>
       <color attach="background" args={['#060507']} />
-      <fog attach="fog" args={['#060507', 9.5, 24]} />
+      <fog attach="fog" args={['#060507', 11, 28]} />
 
       {/* Local Procedural Softbox Studio Reflections (zero remote HDR fetch) */}
       <Environment resolution={256} frames={1}>
         <Lightformer
           form="rect"
-          intensity={1.7}
-          position={[1.5, 5.5, 2.5]}
-          rotation={[Math.PI / 2.2, 0, 0]}
-          scale={[6, 3.5, 1]}
+          intensity={1.8}
+          position={[1.5, 4.5, 6]}
+          rotation={[0.3, 0, 0]}
+          scale={[7, 4, 1]}
           color="#f3eadf"
         />
         <Lightformer
           form="rect"
           intensity={1.35}
-          position={[-5, 2.5, 2]}
-          rotation={[0, Math.PI / 2, 0]}
+          position={[-5, 2.2, 5]}
+          rotation={[0, Math.PI / 3, 0]}
           scale={[5, 3, 1]}
           color="#b8c6de"
         />
         <Lightformer
           form="rect"
-          intensity={1.2}
-          position={[0, 1.2, 4]}
-          rotation={[0, 0, 0]}
-          scale={[4, 1.4, 1]}
+          intensity={1.15}
+          position={[0, -1.8, 4.5]}
+          rotation={[-0.4, 0, 0]}
+          scale={[5, 1.8, 1]}
           color="#ff9f45"
         />
       </Environment>
 
-      {/* Atmospheric Charcoal & Warm Amber Book Illumination Rig */}
-      <ambientLight intensity={0.48} color="#d9d8df" />
+      {/* Atmospheric Upright Gallery Key & Warm Spine Pocket Rig */}
+      <ambientLight intensity={0.54} color="#dedce4" />
       <directionalLight
-        position={[3.6, 5.2, 4.2]}
-        intensity={1.65}
-        color="#f0eae0"
-        castShadow
+        position={[2.8, 3.6, 7.2]}
+        intensity={1.68}
+        color="#f2ece2"
+        castShadow={!isCompactDevice}
         shadow-mapSize-width={1024}
         shadow-mapSize-height={1024}
         shadow-camera-near={1}
@@ -328,44 +365,44 @@ function StorybookWorld({
         shadow-camera-bottom={-3.5}
         shadow-bias={-0.0005}
       />
-      <directionalLight position={[-4.8, 3.4, 2.8]} intensity={1.15} color="#8fa0bf" />
-      <pointLight position={[-0.22, -0.02, 1.66]} color="#ff9d42" intensity={5.4} distance={3.8} decay={1.9} />
-      <pointLight position={[0.45, 0.72, 0.2]} color="#ffb76b" intensity={2.4} distance={4.8} decay={1.8} />
+      <directionalLight position={[-4.2, 2.2, 5.5]} intensity={1.12} color="#92a4c2" />
+      <pointLight position={[0, -1.25, 1.45]} color="#ff9d42" intensity={5.2} distance={4.2} decay={1.8} />
+      <pointLight position={[0.45, 0.25, 1.85]} color="#ffb76b" intensity={2.2} distance={5.0} decay={1.8} />
 
-      {/* Matte Reflective Textured Dark Stone Tabletop */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.445, 0]} receiveShadow>
+      {/* Subtle Dark Reflective Gallery Pedestal Plinth Under the Upright Book */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.7, 0]} receiveShadow>
         <planeGeometry args={[32, 24]} />
         <MeshReflectorMaterial
           map={tableTex}
-          blur={[260, 80]}
-          resolution={512}
+          blur={isCompactDevice ? [120, 40] : [240, 70]}
+          resolution={isCompactDevice ? 256 : 512}
           mixBlur={0.92}
-          mixStrength={2.0}
-          roughness={0.44}
-          depthScale={0.65}
+          mixStrength={1.8}
+          roughness={0.46}
+          depthScale={0.6}
           minDepthThreshold={0.4}
           maxDepthThreshold={1.4}
-          color="#111013"
+          color="#100f12"
           metalness={0.72}
         />
       </mesh>
 
-      {/* Subtle Warm Backstage Smoke Glow behind book spine */}
-      <sprite position={[0.3, 0.75, -2.8]} scale={[7.8, 4.4, 1]}>
+      {/* Subtle Backstage Smoke Halo Behind Book Silhouette */}
+      <sprite position={[0, 0.2, -2.2]} scale={[8.4, 5.2, 1]}>
         <spriteMaterial
           map={amberSprite}
           color="#464552"
           transparent
-          opacity={0.22}
+          opacity={0.2}
           depthWrite={false}
         />
       </sprite>
 
-      {/* Main Physical 3D Storybook Asset + Live Deformable Pages */}
+      {/* Main Physical Upright 3D Storybook Asset + Live Deformable Pages */}
       <group ref={bookGroupRef} position={BOOK_POS} rotation={BOOK_ROT}>
         <primitive object={clonedBaseBook} />
 
-        {/* Spine bottom warm light flare (Reference 01 golden spine notch pocket) */}
+        {/* Spine bottom warm amber pocket flare (stays aligned with upright bottom spine) */}
         <sprite position={[0, 0.14, BOOK_DIMS.pageH * 0.5 + 0.08]} scale={[1.35, 0.55, 1]}>
           <spriteMaterial
             ref={spineGlowMatRef}
@@ -377,11 +414,11 @@ function StorybookWorld({
           />
         </sprite>
 
-        {/* Resting Top Left Curved Leaf (interactive fore-edge corner drag for backward turn) */}
+        {/* Resting Top Left Curved Leaf */}
         <mesh
           geometry={leftLeafGeo}
-          receiveShadow
-          castShadow
+          receiveShadow={!isCompactDevice}
+          castShadow={!isCompactDevice}
           onPointerDown={(e) => {
             if (e.uv && e.uv.x < 0.38) {
               e.stopPropagation();
@@ -391,17 +428,17 @@ function StorybookWorld({
         >
           <meshStandardMaterial
             ref={leftMatRef}
-            map={spreads.journey.left}
+            map={curSpreadTex.left}
             roughness={0.86}
             metalness={0.04}
           />
         </mesh>
 
-        {/* Resting Top Right Curved Leaf (interactive corner click zone near fore-edge) */}
+        {/* Resting Top Right Curved Leaf */}
         <mesh
           geometry={rightLeafGeo}
-          receiveShadow
-          castShadow
+          receiveShadow={!isCompactDevice}
+          castShadow={!isCompactDevice}
           onPointerDown={(e) => {
             if (e.uv && e.uv.x > 0.62) {
               e.stopPropagation();
@@ -411,17 +448,23 @@ function StorybookWorld({
         >
           <meshStandardMaterial
             ref={rightMatRef}
-            map={spreads.journey.right}
+            map={curSpreadTex.right}
             roughness={0.86}
             metalness={0.04}
           />
         </mesh>
 
-        {/* Live Deformed Turning Paper Sheet — Dual-Faced FrontSide + BackSide (Zero Z-Fighting) */}
-        <mesh ref={turningFrontMeshRef} geometry={turnGeoFront} visible={false} castShadow receiveShadow>
+        {/* Live Deformed Turning Paper Sheet — Dual-Faced FrontSide + BackSide */}
+        <mesh
+          ref={turningFrontMeshRef}
+          geometry={turnGeoFront}
+          visible={false}
+          castShadow={!isCompactDevice}
+          receiveShadow={!isCompactDevice}
+        >
           <meshStandardMaterial
             ref={frontTurnMatRef}
-            map={spreads.journey.right}
+            map={curSpreadTex.right}
             side={THREE.FrontSide}
             roughness={0.82}
             metalness={0.05}
@@ -430,10 +473,16 @@ function StorybookWorld({
           />
         </mesh>
 
-        <mesh ref={turningBackMeshRef} geometry={turnGeoBack} visible={false} castShadow receiveShadow>
+        <mesh
+          ref={turningBackMeshRef}
+          geometry={turnGeoBack}
+          visible={false}
+          castShadow={!isCompactDevice}
+          receiveShadow={!isCompactDevice}
+        >
           <meshStandardMaterial
             ref={backTurnMatRef}
-            map={spreads.archive.left}
+            map={tgtSpreadTex.left}
             side={THREE.BackSide}
             roughness={0.82}
             metalness={0.05}
@@ -470,12 +519,13 @@ function StorybookWorld({
  * R3F Canvas Wrapper for the Digital Storybook.
  */
 export function StorybookScene3D(props) {
+  const isCompactViewport = typeof window !== 'undefined' && window.innerWidth < 768;
   return (
     <div className="sb-canvas-wrap">
       <Canvas
-        shadows
-        dpr={[1, 2]}
-        camera={{ position: [-1.0, 2.2, 5.88], fov: 34, near: 0.1, far: 45 }}
+        shadows={!isCompactViewport}
+        dpr={isCompactViewport ? [1, 1.5] : [1, 2]}
+        camera={{ position: [0, 0.2, 7.2], fov: 34, near: 0.1, far: 45 }}
         gl={{ antialias: true, powerPreference: 'high-performance', alpha: false }}
       >
         <Suspense fallback={null}>

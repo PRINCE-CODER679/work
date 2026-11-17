@@ -7,7 +7,11 @@ import {
   CHAPTER_DOCK_ORDER,
 } from './bookChaptersData';
 import { StorybookScene3D } from './StorybookScene3D';
-import { ChapterOverlayContent } from './ChapterOverlayContent';
+import {
+  StorybookMobileReader,
+  StorybookPageOverlays,
+} from './ChapterOverlayContent';
+import { SIGNAL_PROFILE } from './bookChaptersData';
 import './storybook.css';
 
 export const UNIVERSE_WORLDS = CHAPTER_DOCK_ORDER;
@@ -105,6 +109,10 @@ export function DigitalUniverseView({
   const [targetChapterId, setTargetChapterId] = useState('archive');
   const [turnPhase, setTurnPhase] = useState('idle'); // 'idle' | 'dragging' | 'turning'
   const [cornerHover, setCornerHover] = useState(false);
+  const [isPortraitMode, setIsPortraitMode] = useState(
+    () => typeof window !== 'undefined' && (window.innerWidth < 768 || window.innerWidth / Math.max(1, window.innerHeight) < 0.98)
+  );
+  const [portraitFocusSide, setPortraitFocusSide] = useState('right');
 
   const turnStateRef = useRef({
     active: false,
@@ -128,12 +136,41 @@ export function DigitalUniverseView({
     lastY: 0,
   });
 
+  const [activeMarkerId, setActiveMarkerId] = useState(null);
+  const [selectedProject, setSelectedProject] = useState(null);
+  const [mobileProjectIdx, setMobileProjectIdx] = useState(0);
+  const [selectedSpecimen, setSelectedSpecimen] = useState(null);
+  const [activeFrontierIdx, setActiveFrontierIdx] = useState(0);
+  const [copiedEmail, setCopiedEmail] = useState(false);
+
   const curChapterRef = useRef('journey');
   const turnPhaseRef = useRef('idle');
+  const isPortraitRef = useRef(isPortraitMode);
+  const portraitFocusSideRef = useRef(portraitFocusSide);
+
+  useEffect(() => {
+    isPortraitRef.current = isPortraitMode;
+  }, [isPortraitMode]);
+
+  useEffect(() => {
+    portraitFocusSideRef.current = portraitFocusSide;
+  }, [portraitFocusSide]);
 
   useEffect(() => {
     curChapterRef.current = currentChapterId;
+    setPortraitFocusSide('right');
+    setActiveMarkerId(null);
+    setSelectedProject(null);
+    setSelectedSpecimen(null);
   }, [currentChapterId]);
+
+  const handleCopyEmail = useCallback(() => {
+    try {
+      navigator.clipboard?.writeText(SIGNAL_PROFILE.links.email);
+    } catch {}
+    setCopiedEmail(true);
+    setTimeout(() => setCopiedEmail(false), 2000);
+  }, []);
 
   useEffect(() => {
     turnPhaseRef.current = turnPhase;
@@ -300,27 +337,36 @@ export function DigitalUniverseView({
 
       if (ds.mode === 'turn') {
         const delta = ds.direction === 'forward' ? -dxTotal : dxTotal;
-        const p = Math.max(0.02, Math.min(0.96, 0.06 + delta / 320));
+        const dragSpan = window.innerWidth < 768 ? Math.min(240, window.innerWidth * 0.62) : 320;
+        const p = Math.max(0.02, Math.min(0.96, 0.06 + delta / dragSpan));
         turnStateRef.current.progress = p;
         return;
       }
 
       if (ds.mode === 'orbit') {
+        const dyTotal = e.clientY - ds.startY;
         const dx = e.clientX - ds.lastX;
         const dy = e.clientY - ds.lastY;
         ds.lastX = e.clientX;
         ds.lastY = e.clientY;
 
-        // Strong horizontal swipe on touch/trackpad or right-side pull promotes seamlessly into page turn!
-        if (Math.abs(dxTotal) > 36 && Math.abs(dxTotal) > Math.abs(e.clientY - ds.startY) * 1.4 && (e.pointerType === 'touch')) {
-          const dir = dxTotal < 0 ? 'forward' : 'backward';
-          beginCornerDrag(e, dir);
-          return;
+        if (e.pointerType === 'touch') {
+          // If the user is intentionally scrolling vertically on mobile, disengage book drag cleanly
+          if (Math.abs(dyTotal) > 16 && Math.abs(dyTotal) > Math.abs(dxTotal) * 1.1) {
+            dragSessionRef.current.mode = 'none';
+            return;
+          }
+          // Intentional horizontal swipe triggers real 3D curled page turn
+          if (Math.abs(dxTotal) > 20 && Math.abs(dxTotal) > Math.abs(dyTotal) * 1.18) {
+            const dir = dxTotal < 0 ? 'forward' : 'backward';
+            beginCornerDrag(e, dir);
+            return;
+          }
         }
 
         const orbit = orbitOffsetRef.current;
-        orbit.targetAzimuth = Math.max(-0.18, Math.min(0.18, orbit.targetAzimuth - dx * 0.0018));
-        orbit.targetPolar = Math.max(-0.08, Math.min(0.1, orbit.targetPolar + dy * 0.0014));
+        orbit.targetAzimuth = Math.max(-0.14, Math.min(0.14, orbit.targetAzimuth - dx * 0.0016));
+        orbit.targetPolar = Math.max(-0.07, Math.min(0.08, orbit.targetPolar + dy * 0.0012));
       }
     };
 
@@ -328,7 +374,7 @@ export function DigitalUniverseView({
       const ds = dragSessionRef.current;
       if (ds.mode === 'turn') {
         const p = turnStateRef.current.progress;
-        if (p >= 0.28 && ds.nextId) {
+        if (p >= 0.24 && ds.nextId) {
           if (turnTweenRef.current) turnTweenRef.current.kill();
           setTurnPhase('turning');
           turnTweenRef.current = gsap.to(turnStateRef.current, {
@@ -346,9 +392,11 @@ export function DigitalUniverseView({
 
     window.addEventListener('pointermove', onPointerMove, { passive: true });
     window.addEventListener('pointerup', onPointerUp, { passive: true });
+    window.addEventListener('pointercancel', onPointerUp, { passive: true });
     return () => {
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
+      window.removeEventListener('pointercancel', onPointerUp);
     };
   }, [beginCornerDrag, finishTurnTo, springCancelTurn]);
 
@@ -360,6 +408,8 @@ export function DigitalUniverseView({
           currentChapterId: curChapterRef.current,
           turnPhase: turnPhaseRef.current,
           progress: turnStateRef.current.progress,
+          isPortraitMode: isPortraitRef.current,
+          portraitFocusSide: portraitFocusSideRef.current,
         }),
         goToChapter: (id, immediate = false) => {
           if (immediate) {
@@ -371,6 +421,7 @@ export function DigitalUniverseView({
             animatePageTurnTo(id);
           }
         },
+        setPortraitSide: setPortraitFocusSide,
         turnNext,
         turnPrev,
         setDragPreview: (progress, direction = 'forward', targetId = 'archive') => {
@@ -392,48 +443,78 @@ export function DigitalUniverseView({
   }, [animatePageTurnTo, turnNext, turnPrev]);
 
   const isSettled = turnPhase === 'idle';
+  const isRightPageFocused = !isPortraitMode || portraitFocusSide === 'right';
+
+  const sharedChapterProps = {
+    currentChapterId,
+    isSettled,
+    isRightPageFocused,
+    markerElsRef,
+    pageRegionRef,
+    activeMarkerId,
+    setActiveMarkerId,
+    selectedProject,
+    setSelectedProject,
+    mobileProjectIdx,
+    setMobileProjectIdx,
+    selectedSpecimen,
+    setSelectedSpecimen,
+    activeFrontierIdx,
+    setActiveFrontierIdx,
+    copiedEmail,
+    onCopyEmail: handleCopyEmail,
+    onOpenCase,
+    onExitUniverse,
+  };
 
   return (
     <div
       ref={stageRef}
-      className="sb-stage"
+      className={`sb-stage ${isPortraitMode ? 'is-portrait-mode' : ''}`}
       role="region"
       aria-label="Asrar's Unlocked 3D Digital Storybook"
       onPointerDown={handleStagePointerDown}
     >
-      {/* 1. REAL 3D WEBGL BOOK STAGE */}
-      <ErrorBoundary
-        fallback={
-          <div className="sb-fallback mono">
-            DIGITAL UNIVERSE STORYBOOK · ENABLE WEBGL FOR FULL 3D PAGE TURNS
-          </div>
-        }
-      >
-        <StorybookScene3D
-          turnStateRef={turnStateRef}
-          currentChapterId={currentChapterId}
-          targetChapterId={targetChapterId}
-          cornerHover={cornerHover}
-          orbitOffsetRef={orbitOffsetRef}
-          markerElsRef={markerElsRef}
-          pageRegionRef={pageRegionRef}
-          onStartCornerDrag={beginCornerDrag}
-        />
-      </ErrorBoundary>
+      {/* 1. REAL 3D WEBGL BOOK STAGE + PROJECTED OVERLAY LAYER */}
+      <div className="sb-book-viewport">
+        <ErrorBoundary
+          fallback={
+            <div className="sb-fallback mono">
+              DIGITAL UNIVERSE STORYBOOK · ENABLE WEBGL FOR FULL 3D PAGE TURNS
+            </div>
+          }
+        >
+          <StorybookScene3D
+            turnStateRef={turnStateRef}
+            currentChapterId={currentChapterId}
+            targetChapterId={targetChapterId}
+            portraitFocusSide={portraitFocusSide}
+            cornerHover={cornerHover}
+            orbitOffsetRef={orbitOffsetRef}
+            markerElsRef={markerElsRef}
+            pageRegionRef={pageRegionRef}
+            onStartCornerDrag={beginCornerDrag}
+            onPortraitModeChange={setIsPortraitMode}
+          />
+        </ErrorBoundary>
 
-      {/* Subtle corner curl hover + grab hotzone on lower-right page corner */}
-      <div
-        className="sb-corner-hotzone"
-        role="button"
-        tabIndex={-1}
-        aria-label="Drag page corner to turn forward"
-        onMouseEnter={() => setCornerHover(true)}
-        onMouseLeave={() => setCornerHover(false)}
-        onPointerDown={(e) => {
-          e.stopPropagation();
-          beginCornerDrag(e.nativeEvent, 'forward');
-        }}
-      />
+        {/* Subtle corner curl hover + grab hotzone on lower-right page corner */}
+        <div
+          className="sb-corner-hotzone"
+          role="button"
+          tabIndex={-1}
+          aria-label="Drag page corner to turn forward"
+          onMouseEnter={() => setCornerHover(true)}
+          onMouseLeave={() => setCornerHover(false)}
+          onPointerDown={(e) => {
+            e.stopPropagation();
+            beginCornerDrag(e.nativeEvent, 'forward');
+          }}
+        />
+
+        {/* Projected interactive hotspots / buttons anchored to 3D book coordinates */}
+        <StorybookPageOverlays {...sharedChapterProps} />
+      </div>
 
       {/* 2. TOP HUD HEADER & TOP-RIGHT CONTROLS (MATCHING REFERENCE 01) */}
       <header className="sb-header">
@@ -499,65 +580,96 @@ export function DigitalUniverseView({
         </div>
       </header>
 
-      {/* 3. PREVIOUS / NEXT CIRCULAR BOOK NAVIGATION ARROWS & TURN PAGE CUE */}
-      <button
-        type="button"
-        className="sb-arrow sb-arrow--prev"
-        onClick={turnPrev}
-        aria-label="Turn to previous chapter"
-        disabled={turnPhase === 'turning'}
-      >
-        ←
-      </button>
+      {/* 3. PREVIOUS / NEXT CIRCULAR BOOK NAVIGATION ARROWS & TURN PAGE CUE (DESKTOP / LANDSCAPE) */}
+      {!isPortraitMode && (
+        <>
+          <button
+            type="button"
+            className="sb-arrow sb-arrow--prev"
+            onClick={turnPrev}
+            aria-label="Turn to previous chapter"
+            disabled={turnPhase === 'turning'}
+          >
+            ←
+          </button>
 
-      <div className="sb-right-nav-rail">
-        <button
-          type="button"
-          className="sb-arrow sb-arrow--next"
-          onClick={turnNext}
-          aria-label="Turn to next chapter"
-          disabled={turnPhase === 'turning'}
-        >
-          →
-        </button>
+          <div className="sb-right-nav-rail">
+            <button
+              type="button"
+              className="sb-arrow sb-arrow--next"
+              onClick={turnNext}
+              aria-label="Turn to next chapter"
+              disabled={turnPhase === 'turning'}
+            >
+              →
+            </button>
 
-        <button
-          type="button"
-          className="sb-turn-hint mono"
-          onClick={turnNext}
-          aria-label="Turn page"
-        >
-          <svg viewBox="0 0 32 32" className="sb-turn-hint__svg" aria-hidden="true">
-            <path
-              d="M9 11c2-4 10-4 13 0M20 7l2.5 4.2-4.4-.5"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.4"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M15.5 14.5v8.5m0 0c-1.8 0-3-1.2-3-2.6v-2c0-.9 1.4-.9 1.4 0v1.2m1.6-5.1c0-1.1 1.6-1.1 1.6 0v3.6m0-2.5c0-1.1 1.6-1.1 1.6 0v3.3m0-2.2c0-1.1 1.5-1.1 1.5 0v3.6c0 2.5-1.8 4.4-4.7 4.4s-4.5-1.7-4.5-3.8"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.3"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-          <span>TURN PAGE</span>
-        </button>
-      </div>
+            <button
+              type="button"
+              className="sb-turn-hint mono"
+              onClick={turnNext}
+              aria-label="Turn page"
+            >
+              <svg viewBox="0 0 32 32" className="sb-turn-hint__svg" aria-hidden="true">
+                <path
+                  d="M9 11c2-4 10-4 13 0M20 7l2.5 4.2-4.4-.5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.4"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M15.5 14.5v8.5m0 0c-1.8 0-3-1.2-3-2.6v-2c0-.9 1.4-.9 1.4 0v1.2m1.6-5.1c0-1.1 1.6-1.1 1.6 0v3.6m0-2.5c0-1.1 1.6-1.1 1.6 0v3.3m0-2.2c0-1.1 1.5-1.1 1.5 0v3.6c0 2.5-1.8 4.4-4.7 4.4s-4.5-1.7-4.5-3.8"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              <span>TURN PAGE</span>
+            </button>
+          </div>
+        </>
+      )}
 
-      {/* 4. CHAPTER OVERLAYS PROJECTED ONTO SETTLED 3D PAGES */}
-      <ChapterOverlayContent
-        currentChapterId={currentChapterId}
-        isSettled={isSettled}
-        markerElsRef={markerElsRef}
-        pageRegionRef={pageRegionRef}
-        onOpenCase={onOpenCase}
-        onExitUniverse={onExitUniverse}
-      />
+      {/* 3B. PORTRAIT SINGLE-PAGE FOCUS CONTROLS BAR (MOBILE & PORTRAIT TABLET) */}
+      {isPortraitMode && (
+        <div className="sb-portrait-controls mono" role="toolbar" aria-label="Portrait Storybook Page Navigation">
+          <button
+            type="button"
+            className="sb-portrait-ctrl-btn"
+            onClick={turnPrev}
+            aria-label="Turn to previous chapter"
+            disabled={turnPhase === 'turning'}
+          >
+            ← PREV
+          </button>
+
+          <button
+            type="button"
+            className={`sb-portrait-ctrl-btn sb-portrait-ctrl-btn--toggle ${portraitFocusSide === 'left' ? 'is-left' : ''}`}
+            onClick={() => setPortraitFocusSide((s) => (s === 'right' ? 'left' : 'right'))}
+            aria-pressed={portraitFocusSide === 'left'}
+          >
+            {portraitFocusSide === 'right' ? 'VIEW LEFT PAGE' : 'ACTIVE PAGE →'}
+          </button>
+
+          <button
+            type="button"
+            className="sb-portrait-ctrl-btn"
+            onClick={turnNext}
+            aria-label="Turn to next chapter"
+            disabled={turnPhase === 'turning'}
+          >
+            NEXT →
+          </button>
+        </div>
+      )}
+
+      {/* 4. RESPONSIVE MOBILE READER CARDS BELOW BOOK (<= 767px) */}
+      <StorybookMobileReader {...sharedChapterProps} />
 
       {/* 5. BOTTOM FIVE-WORLD NAVIGATION BAR (01..05, REFERENCE 01 MATCH) */}
       <nav className="sb-dock" aria-label="Five Storybook Chapters">

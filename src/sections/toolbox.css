@@ -557,17 +557,76 @@
 @media (max-width: 1024px) {
   #scene-toolbox.tb-section {
     height: auto;
-    min-height: 100vh;
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    padding-top: calc(var(--nav-h) * 0.72);
+  }
+
+  .tb-canvas-wrap {
+    position: relative;
+    width: 100%;
+    height: clamp(390px, 56svh, 540px);
   }
 
   .tb-hud {
-    grid-template-columns: 1fr;
-    padding: calc(var(--nav-h) + 1rem) var(--gutter) 3rem;
-    gap: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    padding: 0.5rem var(--gutter) 2.5rem;
+    gap: 1rem;
+  }
+
+  .tb-unlock-center {
+    order: 1;
+    position: relative;
+    left: auto;
+    top: auto;
+    transform: none;
+    margin: -0.35rem auto 0.25rem;
+  }
+
+  .tb-unlock-rings-svg {
+    width: 120px;
+    height: 120px;
+    opacity: 0.52;
+  }
+
+  .tb-quick-bar {
+    order: 1;
+    position: relative;
+    left: auto;
+    bottom: auto;
+    transform: none;
+    width: 100%;
+    max-width: 100%;
+    margin: 0.1rem auto 0.25rem;
+    gap: 0.48rem;
+  }
+
+  .tb-quick-chip {
+    min-height: 44px;
+    padding: 0.48rem 0.92rem;
+    font-size: 0.68rem;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .tb-right-wrap {
+    order: 2;
+    width: 100%;
+    max-width: 560px;
+    margin: 0 auto;
+  }
+
+  .tb-right-card {
+    min-height: auto;
+    padding: 1.3rem 1.25rem;
   }
 
   .tb-left-col {
+    order: 3;
     max-width: 100%;
+    margin-top: 0.25rem;
   }
 
   .tb-categories {
@@ -576,43 +635,8 @@
     gap: 0.55rem;
   }
 
-  .tb-canvas-wrap {
-    position: relative;
-    height: clamp(360px, 52vh, 480px);
-  }
-
-  .tb-unlock-center {
-    position: relative;
-    left: auto;
-    top: auto;
-    transform: none;
-    margin: 0.75rem auto 0.25rem;
-  }
-
-  .tb-unlock-rings-svg {
-    width: 132px;
-    height: 132px;
-    opacity: 0.55;
-  }
-
-  .tb-right-wrap {
-    grid-column: 1;
-    justify-self: stretch;
-    width: 100%;
-    max-width: 540px;
-    margin: 0 auto;
-  }
-
-  .tb-right-card {
-    min-height: auto;
-  }
-
-  .tb-quick-bar {
-    position: relative;
-    left: auto;
-    bottom: auto;
-    transform: none;
-    margin: 0.5rem auto 0;
+  .tb-cat {
+    min-height: 46px;
   }
 }
 
@@ -622,15 +646,33 @@
   }
 
   .tb-heading {
-    font-size: clamp(2.1rem, 11vw, 3rem);
+    font-size: clamp(2rem, 10vw, 2.75rem);
   }
 
   .tb-canvas-wrap {
-    height: clamp(300px, 44vh, 380px);
+    height: clamp(360px, 56svh, 490px);
   }
 
-  .tb-unlock-center {
-    margin: 0.15rem auto 0.35rem;
+  .tb-unlock-btn {
+    min-height: 44px;
+    font-size: 0.68rem;
+    padding: 0.68rem 1.2rem;
+  }
+
+  .tb-proj-pill {
+    min-height: 38px;
+    display: inline-flex;
+    align-items: center;
+  }
+}
+
+@media (max-height: 520px) and (max-width: 960px) {
+  #scene-toolbox.tb-section {
+    padding-top: calc(var(--nav-h) * 0.55);
+  }
+
+  .tb-canvas-wrap {
+    height: clamp(270px, 74svh, 390px);
   }
 }
 
