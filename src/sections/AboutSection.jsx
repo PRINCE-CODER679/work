@@ -227,6 +227,90 @@ export function AboutSection() {
       if (rect.top < window.innerHeight * 0.94 && rect.bottom > 0) {
         playEntrance();
       }
+
+      // Continuous scrubbed depth glide linking Hero -> Identity -> Selected Work
+      const mm = gsap.matchMedia();
+      mm.add('(min-width: 769px)', () => {
+        const editorialCol = el.querySelector('.id-editorial-col');
+        const hudRail = el.querySelector('.id-hud-rail');
+        const terrain = el.querySelector('.id-terrain-wrap');
+
+        if (artwork) {
+          gsap.fromTo(
+            artwork,
+            { y: 42 },
+            {
+              y: -26,
+              ease: 'none',
+              scrollTrigger: {
+                trigger: el,
+                start: 'top bottom',
+                end: 'bottom top',
+                scrub: 0.75,
+                invalidateOnRefresh: true,
+              },
+            }
+          );
+        }
+
+        const uiTargets = [editorialCol, hudRail].filter(Boolean);
+        if (uiTargets.length) {
+          gsap.fromTo(
+            uiTargets,
+            { y: 28 },
+            {
+              y: -18,
+              ease: 'none',
+              scrollTrigger: {
+                trigger: el,
+                start: 'top bottom',
+                end: 'bottom top',
+                scrub: 0.65,
+                invalidateOnRefresh: true,
+              },
+            }
+          );
+        }
+
+        if (terrain) {
+          gsap.fromTo(
+            terrain,
+            { x: -24, opacity: 0.65 },
+            {
+              x: 18,
+              opacity: 1,
+              ease: 'none',
+              scrollTrigger: {
+                trigger: el,
+                start: 'top bottom',
+                end: 'bottom top',
+                scrub: 0.8,
+                invalidateOnRefresh: true,
+              },
+            }
+          );
+        }
+      });
+
+      mm.add('(max-width: 768px)', () => {
+        if (mobileArt) {
+          gsap.fromTo(
+            mobileArt,
+            { y: 18 },
+            {
+              y: -10,
+              ease: 'none',
+              scrollTrigger: {
+                trigger: el,
+                start: 'top bottom',
+                end: 'bottom top',
+                scrub: 0.55,
+                invalidateOnRefresh: true,
+              },
+            }
+          );
+        }
+      });
     }, sectionRef);
 
     return () => ctx.revert();

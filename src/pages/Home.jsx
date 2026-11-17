@@ -21,10 +21,10 @@ export function Home({ ready, onOpenCase }) {
   useEffect(() => {
     const syncList = [
       ['#scene-about', 'about', 'top 90%', 'bottom 15%'],
-      ['#scene-work-intro', 'work', 'top 85%', 'bottom 15%'],
-      ['#scene-toolbox', 'universe', 'top 85%', 'bottom 15%'],
-      ['#scene-lab', 'lab', 'top 82%', 'bottom 20%'],
-      ['#scene-direction', 'direction', 'top 85%', 'bottom 15%'],
+      ['#scene-work-intro', 'workIntro', 'top 85%', 'bottom 15%'],
+      ['#scene-toolbox', 'universe', 'top 88%', 'bottom 15%'],
+      ['#scene-lab', 'lab', 'top 84%', 'bottom 20%'],
+      ['#scene-direction', 'direction', 'top 88%', 'bottom 15%'],
     ];
 
     const ctx = gsap.context(() => {

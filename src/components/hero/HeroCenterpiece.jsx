@@ -127,11 +127,13 @@ export function HeroCenterpiece() {
         sy += (ty - sy) * 0.075;
 
         const p = scenes.hero.progress || 0;
-        const fade = Math.max(0, 1 - p * 1.42);
-        const lift = p * -72;
+        const exitNorm = Math.max(0, Math.min(1, (p - 0.08) / 0.5));
+        const fade = Math.max(0, 1 - exitNorm);
+        const lift = p * -56;
 
         if (stageRef.current) {
           stageRef.current.style.opacity = String(fade);
+          stageRef.current.style.transform = `scale(${(1 - exitNorm * 0.045).toFixed(4)})`;
         }
         if (wordmarkWrapRef.current) {
           wordmarkWrapRef.current.style.transform = `translate3d(${sx * -11}px, ${lift * 0.85 + sy * -5}px, 0) scale(${1 + p * 0.045})`;

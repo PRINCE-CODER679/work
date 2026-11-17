@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { SplitHeadline } from '../components/ui/SplitHeadline';
-import { damp, prefersReducedMotion } from '../animations/motion';
+import { gsap, ScrollTrigger, damp, prefersReducedMotion } from '../animations/motion';
 import './projectRing.css';
 
 const RING_PROJECTS = [
@@ -57,6 +57,7 @@ const CARD_STEP = 120; // 360 / 3
  * to reveal verified links (Live Demo & GitHub), and keyboard controls.
  */
 export function ProjectRingSection({ onOpenCase }) {
+  const sectionRef = useRef(null);
   const stageRef = useRef(null);
   const cylinderRef = useRef(null);
 
@@ -71,6 +72,124 @@ export function ProjectRingSection({ onOpenCase }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [flippedIndex, setFlippedIndex] = useState(null);
   const [radius, setRadius] = useState(340);
+
+  // Continuous scroll-linked depth & parallax entering/leaving Selected Work
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el || prefersReducedMotion()) return;
+
+    const ctx = gsap.context(() => {
+      const mm = gsap.matchMedia();
+
+      mm.add('(min-width: 769px)', () => {
+        const bgTitle = el.querySelector('.ring-bg-title');
+        const header = el.querySelector('.ring-header');
+        const ringStage = el.querySelector('.ring-stage');
+        const footer = el.querySelector('.ring-footer');
+
+        if (bgTitle) {
+          gsap.fromTo(
+            bgTitle,
+            { y: 50, scale: 0.94 },
+            {
+              y: -50,
+              scale: 1.04,
+              ease: 'none',
+              scrollTrigger: {
+                trigger: el,
+                start: 'top bottom',
+                end: 'bottom top',
+                scrub: 0.85,
+                invalidateOnRefresh: true,
+              },
+            }
+          );
+        }
+
+        if (header) {
+          gsap.fromTo(
+            header,
+            { y: 24, opacity: 0.4 },
+            {
+              y: 0,
+              opacity: 1,
+              ease: 'none',
+              scrollTrigger: {
+                trigger: el,
+                start: 'top 92%',
+                end: 'top 46%',
+                scrub: 0.65,
+                invalidateOnRefresh: true,
+              },
+            }
+          );
+        }
+
+        if (ringStage) {
+          const tl = gsap.timeline({
+            scrollTrigger: {
+              trigger: el,
+              start: 'top 95%',
+              end: 'bottom top',
+              scrub: 0.75,
+              invalidateOnRefresh: true,
+            },
+          });
+          tl.fromTo(
+            ringStage,
+            { opacity: 0.35, scale: 0.94, y: 26 },
+            { opacity: 1, scale: 1, y: 0, duration: 0.34, ease: 'power1.out' }
+          )
+            .to(ringStage, { opacity: 1, scale: 1, y: 0, duration: 0.36, ease: 'none' })
+            .to(ringStage, { opacity: 0.42, scale: 0.95, y: -18, duration: 0.3, ease: 'power1.in' });
+        }
+
+        if (footer) {
+          gsap.fromTo(
+            footer,
+            { y: 20, opacity: 0.4 },
+            {
+              y: 0,
+              opacity: 1,
+              ease: 'none',
+              scrollTrigger: {
+                trigger: el,
+                start: 'top 76%',
+                end: 'center center',
+                scrub: 0.6,
+                invalidateOnRefresh: true,
+              },
+            }
+          );
+        }
+      });
+
+      mm.add('(max-width: 768px)', () => {
+        const ringStage = el.querySelector('.ring-stage');
+        if (ringStage) {
+          gsap.fromTo(
+            ringStage,
+            { opacity: 0.55, scale: 0.97, y: 14 },
+            {
+              opacity: 1,
+              scale: 1,
+              y: 0,
+              ease: 'none',
+              scrollTrigger: {
+                trigger: el,
+                start: 'top 94%',
+                end: 'top 42%',
+                scrub: 0.55,
+                invalidateOnRefresh: true,
+              },
+            }
+          );
+        }
+      });
+    }, sectionRef);
+
+    return () => ctx.revert();
+  }, []);
 
   // Responsive radius calculation
   useEffect(() => {
@@ -231,6 +350,7 @@ export function ProjectRingSection({ onOpenCase }) {
   return (
     <section
       id="scene-work-intro"
+      ref={sectionRef}
       className="ring-section section"
       aria-label="Selected Work 3D Project Ring"
     >

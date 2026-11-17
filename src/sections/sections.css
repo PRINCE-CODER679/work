@@ -960,14 +960,26 @@
 /* ---------- SCENE 10: ENTER ASRAR'S DIGITAL WORLD (FULL-BLEED) ---------- */
 .lab {
   position: relative;
-  min-height: 100vh;
+  min-height: 96vh;
+  margin-top: -3svh;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 0;
-  background: transparent;
+  padding: 2svh 0 0;
+  background:
+    radial-gradient(62% 42% at 50% 18%, rgba(83, 107, 255, 0.1) 0%, rgba(124, 58, 237, 0.04) 45%, transparent 74%),
+    linear-gradient(180deg, rgba(6, 6, 8, 0) 0%, rgba(8, 8, 12, 0.35) 18%, rgba(8, 8, 12, 0.25) 86%, rgba(8, 8, 10, 0) 100%);
   overflow: clip;
   z-index: 3;
+}
+
+.lab.is-unlocking,
+.lab.is-universe-active {
+  margin-top: 0;
+  margin-bottom: 3svh;
+  padding-top: 0;
+  min-height: 100vh;
+  z-index: 6;
 }
 .lab__canvas {
   position: absolute;
@@ -977,6 +989,10 @@
   display: block;
   touch-action: none;
   z-index: 1;
+}
+.lab:not(.is-unlocking):not(.is-universe-active) .lab__canvas {
+  mask-image: linear-gradient(180deg, transparent 0%, #000000 10%, #000000 88%, transparent 100%);
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000000 10%, #000000 88%, transparent 100%);
 }
 .lab__header {
   position: relative;
@@ -1130,12 +1146,24 @@
   }
 }
 
-/* ---------- SCENE 11: CURRENT DIRECTION (CREAM #F3F0E8) ---------- */
+/* ---------- SCENE 11: CURRENT DIRECTION (LUMINOUS PAPER TRANSITION #F3F0E8) ---------- */
 .direction {
   position: relative;
-  background: var(--cream);
+  margin-top: -3svh;
+  margin-bottom: -4svh;
+  background: linear-gradient(
+    180deg,
+    rgba(8, 8, 10, 0) 0%,
+    rgba(28, 27, 25, 0.36) 2.5rem,
+    rgba(222, 218, 209, 0.88) 5.2rem,
+    var(--cream) 8rem,
+    var(--cream) calc(100% - 8rem),
+    rgba(218, 214, 205, 0.88) calc(100% - 5.2rem),
+    rgba(22, 21, 22, 0.42) calc(100% - 2.4rem),
+    rgba(8, 8, 8, 0) 100%
+  );
   color: var(--dark);
-  padding: clamp(5rem, 11vw, 9.5rem) var(--gutter);
+  padding: clamp(7.5rem, 12.5vw, 11rem) var(--gutter) clamp(7.5rem, 11.5vw, 10.5rem);
   z-index: 4;
 }
 .direction__list {
@@ -1164,8 +1192,8 @@
 .contact {
   position: relative;
   min-height: 92svh;
-  padding: clamp(5rem, 11vw, 9rem) var(--gutter) 0;
-  background: linear-gradient(180deg, rgba(8, 8, 8, 0.9) 0%, rgba(8, 8, 8, 0.16) 40%, rgba(8, 8, 8, 0.62) 100%);
+  padding: clamp(6.2rem, 11.5vw, 9.5rem) var(--gutter) 0;
+  background: linear-gradient(180deg, rgba(8, 8, 8, 0) 0%, rgba(8, 8, 8, 0.22) 28%, rgba(8, 8, 8, 0.72) 100%);
   display: flex;
   flex-direction: column;
   justify-content: space-between;

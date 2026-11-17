@@ -4,9 +4,22 @@
 
 .hero-film {
   position: relative;
-  height: 155vh;
+  height: 130vh;
   background: transparent;
   overflow: clip;
+  z-index: 3;
+}
+
+.hero-film::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 24svh;
+  pointer-events: none;
+  z-index: 2;
+  background: radial-gradient(64% 85% at 32% 100%, rgba(124, 58, 237, 0.16), transparent 76%);
 }
 
 .hero-film__pin {
@@ -20,6 +33,8 @@
   justify-content: space-between;
   pointer-events: none;
   overflow: hidden;
+  mask-image: linear-gradient(180deg, #000000 0%, #000000 78%, transparent 100%);
+  -webkit-mask-image: linear-gradient(180deg, #000000 0%, #000000 78%, transparent 100%);
 }
 
 .hero-film__pin button,
@@ -337,6 +352,10 @@
 
 /* Mobile Art-Directed Composition (<= 768px: 430x932, 390x844, 360x800) */
 @media (max-width: 768px) {
+  .hero-film {
+    height: 116vh;
+  }
+
   .hero-film__pin {
     min-height: 560px;
     padding-top: calc(var(--nav-h) + 0.35rem);

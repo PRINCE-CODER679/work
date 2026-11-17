@@ -271,6 +271,7 @@ export function TechUniverseSection({ onOpenCase }) {
   const [activeCat, setActiveCat] = useState('ai'); // Matches Panel 01/02/03 default `03 AI / ML / DATA`
   const [selectedId, setSelectedId] = useState('python'); // Matches Panel 03 default `PYTHON` hero cube
 
+  const sectionRef = useRef(null);
   const timelineRef = useRef(null);
   const animStateRef = useRef({
     vibration: 0,
@@ -363,6 +364,82 @@ export function TechUniverseSection({ onOpenCase }) {
       if (typeof window !== 'undefined') delete window.__asrarToolbox;
     };
   }, [jumpToSnapshot]);
+
+  // Continuous scroll-linked arrival & departure bridging Selected Work -> Toolbox -> Digital World
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el || prefersReducedMotion()) return;
+
+    const ctx = gsap.context(() => {
+      const mm = gsap.matchMedia();
+
+      mm.add('(min-width: 769px)', () => {
+        const leftCol = el.querySelector('.tb-left-col');
+        const rightWrap = el.querySelector('.tb-right-wrap');
+        const canvasWrap = el.querySelector('.tb-canvas-wrap');
+
+        const hudCols = [leftCol, rightWrap].filter(Boolean);
+        if (hudCols.length) {
+          const tl = gsap.timeline({
+            scrollTrigger: {
+              trigger: el,
+              start: 'top 95%',
+              end: 'bottom top',
+              scrub: 0.7,
+              invalidateOnRefresh: true,
+            },
+          });
+          tl.fromTo(
+            hudCols,
+            { y: 28, opacity: 0.35 },
+            { y: 0, opacity: 1, duration: 0.32, ease: 'power1.out' }
+          )
+            .to(hudCols, { y: 0, opacity: 1, duration: 0.4, ease: 'none' })
+            .to(hudCols, { y: -18, opacity: 0.45, duration: 0.28, ease: 'power1.in' });
+        }
+
+        if (canvasWrap) {
+          const cTl = gsap.timeline({
+            scrollTrigger: {
+              trigger: el,
+              start: 'top 98%',
+              end: 'bottom top',
+              scrub: 0.75,
+              invalidateOnRefresh: true,
+            },
+          });
+          cTl
+            .fromTo(canvasWrap, { opacity: 0.4 }, { opacity: 1, duration: 0.26, ease: 'none' })
+            .to(canvasWrap, { opacity: 1, duration: 0.5, ease: 'none' })
+            .to(canvasWrap, { opacity: 0.42, duration: 0.24, ease: 'none' });
+        }
+      });
+
+      mm.add('(max-width: 768px)', () => {
+        const hudCols = [el.querySelector('.tb-left-col'), el.querySelector('.tb-right-wrap')].filter(Boolean);
+        if (hudCols.length) {
+          gsap.fromTo(
+            hudCols,
+            { y: 16, opacity: 0.5 },
+            {
+              y: 0,
+              opacity: 1,
+              ease: 'none',
+              scrollTrigger: {
+                trigger: el,
+                start: 'top 92%',
+                end: 'center center',
+                scrub: 0.5,
+                invalidateOnRefresh: true,
+              },
+            }
+          );
+        }
+      });
+    }, sectionRef);
+
+    return () => ctx.revert();
+  }, []);
 
   // Deterministic 3.30-second Opening Animation Choreography (Rule 3)
   const triggerUnlock = useCallback(() => {
@@ -459,6 +536,7 @@ export function TechUniverseSection({ onOpenCase }) {
   return (
     <section
       id="scene-toolbox"
+      ref={sectionRef}
       className={`tb-section tb-section--${phase}`}
       aria-label="Scene 08: The Toolbox"
     >

@@ -48,6 +48,49 @@ export function ContactSection() {
           scenes.contact.visible = false;
         },
       });
+
+      const mm = gsap.matchMedia();
+      mm.add('(min-width: 769px)', () => {
+        const formWrap = el.querySelector('.contact__form-wrap');
+        const linkTiles = el.querySelectorAll('.contact__link-tile');
+        if (formWrap) {
+          gsap.fromTo(
+            formWrap,
+            { y: 32, opacity: 0.35 },
+            {
+              y: 0,
+              opacity: 1,
+              ease: 'none',
+              scrollTrigger: {
+                trigger: el,
+                start: 'top 88%',
+                end: 'top 36%',
+                scrub: 0.65,
+                invalidateOnRefresh: true,
+              },
+            }
+          );
+        }
+        if (linkTiles.length) {
+          gsap.fromTo(
+            linkTiles,
+            { y: 22, opacity: 0.4 },
+            {
+              y: 0,
+              opacity: 1,
+              stagger: 0.08,
+              ease: 'none',
+              scrollTrigger: {
+                trigger: el.querySelector('.contact__links') || el,
+                start: 'top 94%',
+                end: 'top 62%',
+                scrub: 0.55,
+                invalidateOnRefresh: true,
+              },
+            }
+          );
+        }
+      });
     }, sectionRef);
 
     return () => {

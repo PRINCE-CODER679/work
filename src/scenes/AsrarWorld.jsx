@@ -259,10 +259,17 @@ export function AsrarWorld({ wireframe = false, tier = 'high' }) {
     const hp = scenes.hero.progress; // 0..1 Hero scroll dive
     const intro = smooth(scenes.hero.intro); // 0..1 Opening dolly pullback
     const sp = scroll.progress; // 0..1 Global digital-film progress
-    const labActive = scenes.lab.visible ? 1 : 0;
-    smoothLab.current = damp(smoothLab.current, labActive, app.reducedMotion ? 20 : 4.5, dt);
+    const workPulse = scenes.workIntro.visible ? Math.sin(scenes.workIntro.progress * Math.PI) : 0;
+    const toolboxExit = scenes.universe.visible
+      ? smooth(Math.min(1, Math.max(0, (scenes.universe.progress - 0.52) / 0.48)))
+      : 0;
+    const labTarget = scenes.lab.visible ? 1 : toolboxExit * 0.55;
+    smoothLab.current = damp(smoothLab.current, labTarget, app.reducedMotion ? 20 : 4.2, dt);
     const labMix = smooth(Math.min(1, Math.max(0, smoothLab.current)));
-    const cp = scenes.contact.progress; // 0..1 Contact Finale loop
+    const dirLead = scenes.direction.visible
+      ? smooth(Math.min(1, Math.max(0, (scenes.direction.progress - 0.62) / 0.38)))
+      : 0;
+    const cp = Math.max(scenes.contact.progress, dirLead * 0.42); // Continuous approach to Contact Halo Bust Finale
     const contactActive = Math.min(1, Math.max(0, cp * 1.45));
     const contactMix = smooth(contactActive);
 
@@ -304,9 +311,9 @@ export function AsrarWorld({ wireframe = false, tier = 'high' }) {
     coreUniforms.uScroll.value = hp;
     coreUniforms.uPointer.value.set(smoothPtr.current.x, smoothPtr.current.y);
 
-    // Architectural rings orbit during Lab / contact modes only (hidden during Hero to keep 3D portrait clean & free of circular bullseye)
+    // Architectural rings & core lattice wake smoothly for Lab / Contact Finale (or wireframe inspection)
     const motionMult = app.reducedMotion ? 0.04 : 1;
-    const gimbalsVis = Boolean(wireframe || labMix > 0.02 || (hp > 0.45 && contactActive < 0.2));
+    const gimbalsVis = Boolean(wireframe || labMix > 0.02);
     if (ringOuterRef.current) {
       ringOuterRef.current.visible = gimbalsVis;
       ringOuterRef.current.rotation.z = t * 0.08 * motionMult + hp * 1.1 + sp * 1.6;
@@ -332,9 +339,9 @@ export function AsrarWorld({ wireframe = false, tier = 'high' }) {
       haloRingRef.current.scale.setScalar(isMobile ? 0.8 : lerp(0.95, 1.08, contactActive));
     }
 
-    // Core lattice visible during Lab / wireframe inspector so mid-film digital world glows behind arena
+    // Core lattice visible during Lab / wireframe inspector so mid-film digital world glows cleanly
     if (coreGroupRef.current) {
-      coreGroupRef.current.visible = Boolean(wireframe || labMix > 0.02 || (hp > 0.55 && contactActive < 0.2));
+      coreGroupRef.current.visible = Boolean(wireframe || labMix > 0.02);
       coreGroupRef.current.position.set(
         smoothPtr.current.x * 0.24 * labMix,
         lerp(0.35, -0.06 + smoothPtr.current.y * 0.14, labMix),
@@ -353,16 +360,16 @@ export function AsrarWorld({ wireframe = false, tier = 'high' }) {
     }
 
     if (waterRef.current) {
-      waterRef.current.visible = portraitHeroVis > 0.02 || contactActive > 0.02 || labMix > 0.02;
+      waterRef.current.visible = Boolean(wireframe || contactActive > 0.02 || labMix > 0.02);
     }
     if (dustRef.current && !app.reducedMotion) {
       dustRef.current.rotation.y = t * 0.018 + sp * 0.4;
     }
 
-    // Dynamic lights shift warmth between Hero (#FF5924) and Contact Halo Finale (#536BFF)
+    // Dynamic lights shift seamlessly across Hero, Selected Work cobalt aura, Lab & Contact Halo Finale
     if (rimOrangeRef.current && rimCobaltRef.current && keyLightRef.current) {
       rimOrangeRef.current.intensity = lerp(24, 10, contactActive);
-      rimCobaltRef.current.intensity = lerp(18, 28, contactActive);
+      rimCobaltRef.current.intensity = lerp(18, 28, contactActive) + workPulse * 5;
       keyLightRef.current.intensity = lerp(3.2, 2.4, contactActive);
     }
     if (scene.fog) {
@@ -376,7 +383,7 @@ export function AsrarWorld({ wireframe = false, tier = 'high' }) {
     const introY = lerp(0.35, 0.05, intro);
     const introZ = lerp(3.8, baseZ, intro);
 
-    const diveZ = lerp(introZ, -3.4, smooth(hp));
+    const diveZ = lerp(introZ, isMobile ? 4.2 : 2.6, smooth(hp));
     const diveY = introY + Math.sin(hp * Math.PI) * 0.35;
     const diveX = introX + Math.sin(hp * Math.PI * 0.85) * -0.45;
 
